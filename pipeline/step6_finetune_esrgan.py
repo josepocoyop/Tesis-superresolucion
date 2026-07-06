@@ -9,8 +9,8 @@ of iterations are set in config.py and logged with the run).
 After training, the fine-tuned generator is run on all LR frames and the
 results are saved to output/sr_finetuned/ for comparison in Step 7.
 
-Requires a GPU (Google Colab T4 or better). Expected training time on a
-T4 with the default 5000 iterations: roughly 2-3 hours.
+Requires an NVIDIA GPU with CUDA. With the default 5000 iterations, expect
+roughly an hour on an RTX 4070 Ti (2-3 hours on a Colab T4).
 
 Usage:
     python step6_finetune_esrgan.py                 # train + inference
@@ -44,7 +44,7 @@ def patch_basicsr():
 
     Recent torchvision removed transforms.functional_tensor; basicsr 1.4.2
     still imports rgb_to_grayscale from it. Redirect the import so training
-    works on current Colab images.
+    works with recent torchvision versions.
     """
     import basicsr
     deg = Path(basicsr.__file__).parent / 'data' / 'degradations.py'
@@ -272,7 +272,7 @@ def main():
     print()
 
     if not torch.cuda.is_available() and not args.skip_train:
-        print('ERROR: Fine-tuning requires a GPU. Run this step on Google Colab (T4).')
+        print('ERROR: Fine-tuning requires an NVIDIA GPU with CUDA available.')
         sys.exit(1)
 
     if not args.skip_train:

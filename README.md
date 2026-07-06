@@ -64,9 +64,9 @@ Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetiv
 - **Hiperparámetros ajustables** (definidos en `config.py` y registrados con cada corrida): learning rate (1e-4), batch size (4), iteraciones (5000 por defecto, ajustable con `--iters`), scheduler MultiStepLR con reducción al 80% del entrenamiento.
 - El modelo afinado se exporta a `weights/RealESRGAN_x4plus_finetuned.pth` y se evalúa como un método más en step7.
 
-**Requisito:** GPU (Google Colab T4). Tiempo estimado: 2 a 3 horas con 5000 iteraciones.
+**Requisito:** GPU NVIDIA con CUDA. En la RTX 4070 Ti del equipo local, las 5000 iteraciones deberían tomar alrededor de una hora (estimado; en una T4 de Colab serían 2 a 3 horas).
 
-**Evidencia para la tesis:** tabla de hiperparámetros, curva o registro de pérdidas del entrenamiento (basicsr genera logs en `Real-ESRGAN/experiments/`), y comparación cuantitativa preentrenado vs fine-tuned en la Tabla de resultados. El ajuste de hiperparámetros se documenta corriendo al menos dos configuraciones (por ejemplo `--iters 2000` y `--iters 5000`) y reportando cuál dio mejor LPIPS.
+**Evidencia para la tesis:** tabla de hiperparámetros, curva de pérdidas del entrenamiento (step8 la genera automáticamente a partir de los logs de basicsr), y comparación cuantitativa preentrenado vs fine-tuned en la Tabla de resultados. El ajuste de hiperparámetros se documenta corriendo al menos dos configuraciones (por ejemplo `--iters 2000` y `--iters 5000`) y reportando cuál dio mejor LPIPS.
 
 ---
 
@@ -103,11 +103,11 @@ Los métodos comparados son: bicúbico (tradicional), ESRGAN preentrenado (GAN),
 | `step5_swinir_inference.py` | Superresolución con SwinIR ×4 (transformador visual) | Obj. 2 |
 | `step6_finetune_esrgan.py` | Fine-tuning de Real-ESRGAN sobre el dataset propio de CCTV, con hiperparámetros documentados. Exporta los pesos afinados y corre inferencia | Obj. 3 |
 | `step7_compute_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime la tabla LaTeX de la tesis | Obj. 4 |
-| `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición y gráfica de métricas, a 300 DPI | Obj. 4 |
+| `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición, gráfica de métricas, curva de pérdidas del entrenamiento y figura de interpolación RIFE, a 300 DPI | Obj. 3 y 4 |
 
 El pipeline del artículo de ColCom (versión de dos métodos, sin condiciones) quedó congelado en `ColCom Paper/reproducibility/pipeline/`; este pipeline es solo para la tesis.
 
-## Orden de ejecución (Google Colab, GPU T4)
+## Orden de ejecución (local, GPU NVIDIA)
 
 ```
 pip install -r pipeline/requirements.txt
@@ -124,10 +124,12 @@ python pipeline/step8_generate_figures.py  # figuras de la tesis (Obj. 4)
 
 Una copia congelada de los scripts y métricas exactos del artículo está en `ColCom Paper/reproducibility/`; esa carpeta no se toca, todo el trabajo de tesis se hace en `pipeline/`.
 
-Consejos para Colab:
-- Subir las carpetas `pipeline/`, `dataset/raw_videos/` y `weights/` a `/content/jose/` (o montar Drive). `config.py` detecta Colab automáticamente.
+Consejos:
+- Todo corre en la máquina local (RTX 4070 Ti, 32 GB de RAM); los scripts se ejecutan desde la carpeta raíz del proyecto y las rutas se resuelven solas.
+- No correr step6 (fine-tuning) mientras la GPU esté ocupada con otro entrenamiento; los demás steps de inferencia también usan la GPU, así que conviene esperar a que esté libre.
 - Si la GPU se queda sin memoria en step5: `--tile 256`. En step6: `--tile 400` para la inferencia.
-- Descargar al final `output/metrics/` y `output/thesis_figures/` para el documento.
+- Los resultados quedan en `output/metrics/` y `output/thesis_figures/`, listos para el documento.
+- `config.py` también detecta Google Colab automáticamente por si algún día se corre allá, pero no es el flujo principal.
 
 ---
 

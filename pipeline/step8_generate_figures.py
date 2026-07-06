@@ -11,6 +11,12 @@ Generates, at 300 DPI in output/thesis_figures/:
     thesis_fig_metrics_by_condition.png
         Grouped bar chart of LPIPS per method and condition (falls back to
         PSNR if LPIPS was skipped in step7).
+    thesis_fig_training_loss.png
+        Fine-tuning loss curves parsed from the basicsr training log
+        (skipped if step6 has not been run).
+    thesis_fig_rife.png
+        Two consecutive frames with the RIFE-interpolated frame between
+        them (skipped if step4 has not been run).
 
 Run step7_compute_metrics.py first.
 
@@ -26,7 +32,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import (
     FRAMES_HR_DIR, FRAMES_LR_DIR, FRAMES_BIC_DIR, FRAMES_SR_DIR,
-    FRAMES_SWINIR_DIR, FRAMES_SR_FT_DIR, METRICS_DIR, THESIS_FIGURES_DIR,
+    FRAMES_SWINIR_DIR, FRAMES_SR_FT_DIR, FRAMES_RIFE_DIR, REALESRGAN_DIR,
+    METRICS_DIR, THESIS_FIGURES_DIR,
     SCALE_FACTOR, FIG_DOUBLE_W, FIG_DPI, condition_of,
 )
 
@@ -141,6 +148,73 @@ def metrics_bar_chart(summary: dict, active, out_path: Path):
     print(f'  Saved: {out_path.name}')
 
 
+def training_curve(out_path: Path):
+    """Loss curves of the step6 fine-tuning, parsed from the basicsr log."""
+    import re
+    import matplotlib.pyplot as plt
+
+    exp_dir = REALESRGAN_DIR / 'experiments' / 'finetune_RealESRGANx4plus_cctv'
+    logs = sorted(exp_dir.glob('train_*.log')) if exp_dir.exists() else []
+    if not logs:
+        print('  Training log not found (run step6 first); loss curve skipped.')
+        return
+    pat = re.compile(r'iter:\s*([\d,]+).*?l_g_pix:\s*([\d.eE+-]+).*?l_g_percep:\s*([\d.eE+-]+)')
+    iters, l_pix, l_percep = [], [], []
+    for log in logs:
+        for line in log.read_text(encoding='utf-8', errors='ignore').splitlines():
+            m = pat.search(line)
+            if m:
+                iters.append(int(m.group(1).replace(',', '')))
+                l_pix.append(float(m.group(2)))
+                l_percep.append(float(m.group(3)))
+    if not iters:
+        print('  No loss entries found in the training log; loss curve skipped.')
+        return
+
+    fig, ax = plt.subplots(figsize=(FIG_DOUBLE_W * 0.6, 2.6))
+    ax.plot(iters, l_pix, linewidth=1, label='Pérdida L1 (píxel)')
+    ax.plot(iters, l_percep, linewidth=1, label='Pérdida perceptual (VGG)')
+    ax.set_xlabel('Iteración', fontsize=8)
+    ax.set_ylabel('Pérdida', fontsize=8)
+    ax.set_yscale('log')
+    ax.tick_params(labelsize=7)
+    ax.legend(fontsize=7, frameon=False)
+    ax.spines[['top', 'right']].set_visible(False)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
+    plt.close(fig)
+    print(f'  Saved: {out_path.name}')
+
+
+def rife_strip(out_path: Path):
+    """Two consecutive frames and the RIFE frame interpolated between them."""
+    import matplotlib.pyplot as plt
+
+    origs = sorted(FRAMES_RIFE_DIR.glob('frame_*_orig.png'))
+    if len(origs) < 2:
+        print('  RIFE output not found (run step4 first); RIFE figure skipped.')
+        return
+    mid = len(origs) // 2
+    a, b = origs[mid], origs[mid + 1]
+    interp = FRAMES_RIFE_DIR / a.name.replace('_orig', '_rife')
+    if not interp.exists():
+        print('  Interpolated frame missing; RIFE figure skipped.')
+        return
+
+    panels = [(load_rgb(a), 'Fotograma t'),
+              (load_rgb(interp), 'Interpolado (RIFE)'),
+              (load_rgb(b), 'Fotograma t+1')]
+    fig, axes = plt.subplots(1, 3, figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / 3 * 0.62))
+    for ax, (img, lbl) in zip(axes, panels):
+        ax.imshow(img)
+        ax.set_title(lbl, fontsize=7)
+        ax.axis('off')
+    fig.tight_layout(pad=0.3)
+    fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
+    plt.close(fig)
+    print(f'  Saved: {out_path.name}')
+
+
 def main():
     install_deps()
     import pandas as pd
@@ -181,6 +255,12 @@ def main():
     print('\nMetrics chart:')
     metrics_bar_chart(summary, active,
                       THESIS_FIGURES_DIR / 'thesis_fig_metrics_by_condition.png')
+
+    print('\nTraining loss curve:')
+    training_curve(THESIS_FIGURES_DIR / 'thesis_fig_training_loss.png')
+
+    print('\nRIFE interpolation figure:')
+    rife_strip(THESIS_FIGURES_DIR / 'thesis_fig_rife.png')
 
     print(f'\nAll thesis figures saved in: {THESIS_FIGURES_DIR}')
     print('Step 8 complete.')
