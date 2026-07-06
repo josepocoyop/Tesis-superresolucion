@@ -1,13 +1,42 @@
 # Mejoramiento de Video en Sistemas de Videovigilancia
 
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white)
+![GPU](https://img.shields.io/badge/GPU-RTX%204070%20Ti-76B900?logo=nvidia&logoColor=white)
+![Tesis](https://img.shields.io/badge/Tesis-en%20desarrollo-yellow)
+![ColCom 2026](https://img.shields.io/badge/ColCom%202026-enviado-brightgreen)
+
 Proyecto de tesis: **"Desarrollo de un modelo de inteligencia artificial para el escalamiento visual en videovigilancia mediante técnicas de superresolución y transformadores visuales"**
 
-- **Autor:** Jose Rodriguez Botello (UFPS, Cúcuta)
-- **Director:** Sergio Castro Casadiego (UFPS)
-- **Co-director:** Sebastian Rojas-Ortega (University of Delaware)
-- **Artículo asociado:** ColCom 2026 (ya enviado, `ColCom Paper/`)
+| | |
+|---|---|
+| **Autor** | Jose Rodriguez Botello (UFPS, Cúcuta) |
+| **Director** | Sergio Castro Casadiego (UFPS) |
+| **Co-director** | Sebastian Rojas-Ortega (University of Delaware) |
+| **Artículo asociado** | ColCom 2026, ya enviado (`ColCom Paper/`) |
 
 Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetivos específicos del anteproyecto aprobado**, qué scripts implementan cada uno, y qué falta por ejecutar. Los jurados verificarán el cumplimiento de cada objetivo, así que cada sección indica la evidencia concreta que la tesis debe presentar.
+
+```mermaid
+flowchart LR
+    A[Videos CCTV<br>day / night / indoor] --> B[step1-2<br>Dataset LR/HR]
+    B --> C[step3<br>ESRGAN x4]
+    B --> D[step5<br>SwinIR x4]
+    B --> E[step6<br>Fine-tuning]
+    C --> F[step4<br>RIFE x2]
+    C --> G[step7<br>Métricas]
+    D --> G
+    E --> G
+    F --> H
+    G --> H[step8<br>Figuras y tablas]
+
+    classDef data fill:#1f6feb,stroke:#0d419d,color:#fff
+    classDef model fill:#8957e5,stroke:#553098,color:#fff
+    classDef eval fill:#238636,stroke:#196c2e,color:#fff
+    class A,B data
+    class C,D,E,F model
+    class G,H eval
+```
 
 ---
 
@@ -15,15 +44,13 @@ Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetiv
 
 > Desarrollar un modelo de inteligencia artificial basado en técnicas de superresolución y transformadores visuales para escalar la calidad y fluidez de videos de videovigilancia.
 
-**Cómo se cumple:** el pipeline completo combina superresolución con GAN (Real-ESRGAN), superresolución con transformadores visuales (SwinIR), interpolación de fotogramas para fluidez (RIFE) y un fine-tuning propio sobre datos de CCTV. Todo está automatizado en la carpeta `pipeline/` (11 scripts).
+**Cómo se cumple:** el pipeline completo combina superresolución con GAN (Real-ESRGAN), superresolución con transformadores visuales (SwinIR), interpolación de fotogramas para fluidez (RIFE) y un fine-tuning propio sobre datos de CCTV. Todo está automatizado en la carpeta `pipeline/` (8 pasos).
 
 ---
 
 ## Objetivo Específico 1: Preprocesamiento del dataset
 
 > Preprocesar una base de datos de videos de cámaras de seguridad con distintos niveles de calidad, resolución y condiciones de iluminación, garantizando su adecuación para el entrenamiento y validación del modelo.
-
-**Cómo se cumple:**
 
 | Requisito del objetivo | Implementación |
 |---|---|
@@ -32,7 +59,8 @@ Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetiv
 | Distintas condiciones de iluminación | Convención de nombres de video: `day_*.mp4`, `night_*.mp4`, `indoor_*.mp4`. El step2 procesa todos los videos de `raw_videos/` y los fotogramas heredan el prefijo, de modo que la condición se propaga por todo el pipeline. La función `config.condition_of()` la extrae del nombre del archivo |
 | Adecuación para entrenamiento y validación | Los pares LR/HR de step2 alimentan tanto el fine-tuning (step6) como las métricas (step7) |
 
-**Acción pendiente de Jose:** conseguir 3 o 4 videos HD de vigilancia (cámara fija, exterior/interior) y nombrarlos con los prefijos de condición. Fuente sugerida: Pexels (buscar "surveillance camera outdoor", "security camera night", descarga gratuita). Colocarlos en `dataset/raw_videos/` y correr steps 1-2.
+> [!IMPORTANT]
+> **Acción pendiente de Jose:** conseguir 3 o 4 videos HD de vigilancia (cámara fija, exterior/interior) y nombrarlos con los prefijos de condición. Fuente sugerida: Pexels (buscar "surveillance camera outdoor", "security camera night", descarga gratuita). Colocarlos en `dataset/raw_videos/` y correr steps 1-2.
 
 **Evidencia para la tesis:** descripción del protocolo de degradación (ya redactado en el paper de ColCom), tabla con número de fotogramas por condición, figura de ejemplo LR vs HR.
 
@@ -50,7 +78,8 @@ Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetiv
 
 **Evidencia para la tesis:** diagrama del pipeline (ya existe: `ColCom Paper/figures/pipeline_cctv.png`), descripción de las arquitecturas RRDBNet, Swin Transformer y RIFE (figuras 2 y 3 del paper; falta agregar una figura de la arquitectura SwinIR al documento de tesis).
 
-**Nota importante:** la sección 4.1.2 del anteproyecto afirma que ya se implementó una arquitectura transformer, lo cual no era cierto en ese momento. Con SwinIR integrado (step5), esa afirmación queda respaldada, pero la redacción del capítulo debe corregirse para describir lo que realmente se hizo.
+> [!WARNING]
+> La sección 4.1.2 del anteproyecto afirma que ya se implementó una arquitectura transformer, lo cual no era cierto en ese momento. Con SwinIR integrado (step5), esa afirmación queda respaldada, pero la redacción del capítulo debe corregirse para describir lo que realmente se hizo.
 
 ---
 
@@ -74,18 +103,17 @@ Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetiv
 
 > Validar el modelo desarrollado mediante métricas cuantitativas como PSNR y SSIM, junto con evaluaciones cualitativas basadas en percepción visual, y comparar los resultados con enfoques tradicionales de mejora de video.
 
-**Cómo se cumple:**
-
 | Requisito del objetivo | Implementación |
 |---|---|
 | PSNR y SSIM | `step7_compute_metrics.py` calcula PSNR, SSIM y además LPIPS (métrica perceptual, va más allá de lo prometido) para todos los métodos |
 | Evaluación cualitativa | `step8_generate_figures.py` genera tiras de comparación visual por condición de iluminación (entrada LR, cada método, referencia HR) a 300 DPI |
 | Comparación con enfoques tradicionales | La interpolación **bicúbica ×4** es la línea base tradicional en todas las tablas y figuras |
-| Análisis por condición | step7 agrega resultados por condición (day/night/indoor) además del global, y genera la tabla LaTeX lista para pegar en la tesis |
+| Análisis por condición | step7 agrega resultados por condición (day/night/indoor) además del global, y genera las tablas LaTeX listas para pegar en la tesis |
 
 Los métodos comparados son: bicúbico (tradicional), ESRGAN preentrenado (GAN), SwinIR (transformer) y ESRGAN fine-tuned (modelo propio entrenado).
 
-**Nota sobre resultados esperados:** es normal que ESRGAN tenga PSNR menor que el bicúbico (brecha percepción-distorsión, Blau & Michaeli 2018). La superioridad se demuestra con LPIPS y con las comparaciones visuales. Esto ya está explicado en el paper de ColCom y debe explicarse igual en la tesis.
+> [!NOTE]
+> Es normal que ESRGAN tenga PSNR menor que el bicúbico (brecha percepción-distorsión, Blau & Michaeli 2018). La superioridad se demuestra con LPIPS y con las comparaciones visuales. Esto ya está explicado en el paper de ColCom y debe explicarse igual en la tesis.
 
 **Evidencia para la tesis:** `output/metrics/thesis_metrics.csv`, `output/metrics/thesis_summary.json`, tablas LaTeX impresas por step7, figuras de `output/thesis_figures/`.
 
@@ -102,14 +130,15 @@ Los métodos comparados son: bicúbico (tradicional), ESRGAN preentrenado (GAN),
 | `step4_rife_inference.py` | Interpolación de fotogramas con RIFE ×2 (fluidez temporal) | Obj. 2 |
 | `step5_swinir_inference.py` | Superresolución con SwinIR ×4 (transformador visual) | Obj. 2 |
 | `step6_finetune_esrgan.py` | Fine-tuning de Real-ESRGAN sobre el dataset propio de CCTV, con hiperparámetros documentados. Exporta los pesos afinados y corre inferencia | Obj. 3 |
-| `step7_compute_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime la tabla LaTeX de la tesis | Obj. 4 |
+| `step7_compute_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime las tablas LaTeX de la tesis | Obj. 4 |
 | `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición, gráfica de métricas, curva de pérdidas del entrenamiento y figura de interpolación RIFE, a 300 DPI | Obj. 3 y 4 |
 
-El pipeline del artículo de ColCom (versión de dos métodos, sin condiciones) quedó congelado en `ColCom Paper/reproducibility/pipeline/`; este pipeline es solo para la tesis.
+> [!WARNING]
+> El pipeline del artículo de ColCom (versión de dos métodos, sin condiciones) quedó congelado en `ColCom Paper/reproducibility/pipeline/`. Esa carpeta no se toca: todo el trabajo de tesis se hace en `pipeline/`.
 
 ## Orden de ejecución (local, GPU NVIDIA)
 
-```
+```bash
 pip install -r pipeline/requirements.txt
 
 python pipeline/step1_get_dataset.py       # valida los videos
@@ -119,15 +148,17 @@ python pipeline/step4_rife_inference.py    # interpolación RIFE (Obj. 2, fluide
 python pipeline/step5_swinir_inference.py  # SwinIR transformer (Obj. 2)
 python pipeline/step6_finetune_esrgan.py   # entrenamiento/fine-tuning (Obj. 3)
 python pipeline/step7_compute_metrics.py   # métricas por método y condición (Obj. 4)
-python pipeline/step8_generate_figures.py  # figuras de la tesis (Obj. 4)
+python pipeline/step8_generate_figures.py  # figuras de la tesis (Obj. 3 y 4)
 ```
 
-Una copia congelada de los scripts y métricas exactos del artículo está en `ColCom Paper/reproducibility/`; esa carpeta no se toca, todo el trabajo de tesis se hace en `pipeline/`.
+> [!CAUTION]
+> No correr step6 (fine-tuning) mientras la GPU esté ocupada con otro entrenamiento. Los steps de inferencia (3, 4, 5) también usan la GPU, así que conviene esperar a que esté libre.
 
-Consejos:
+> [!TIP]
+> Si la GPU se queda sin memoria en step5: `--tile 256`. En step6: `--tile 400` para la inferencia.
+
+Notas:
 - Todo corre en la máquina local (RTX 4070 Ti, 32 GB de RAM); los scripts se ejecutan desde la carpeta raíz del proyecto y las rutas se resuelven solas.
-- No correr step6 (fine-tuning) mientras la GPU esté ocupada con otro entrenamiento; los demás steps de inferencia también usan la GPU, así que conviene esperar a que esté libre.
-- Si la GPU se queda sin memoria en step5: `--tile 256`. En step6: `--tile 400` para la inferencia.
 - Los resultados quedan en `output/metrics/` y `output/thesis_figures/`, listos para el documento.
 - `config.py` también detecta Google Colab automáticamente por si algún día se corre allá, pero no es el flujo principal.
 
@@ -148,7 +179,7 @@ El anteproyecto (`Anteproyecto.pdf`) tiene los capítulos 1 a 4 casi completos. 
 
 ## Estructura del repositorio
 
-```
+```text
 Jose/
 ├── pipeline/                  Scripts del experimento de la tesis (steps 1-8)
 ├── dataset/
