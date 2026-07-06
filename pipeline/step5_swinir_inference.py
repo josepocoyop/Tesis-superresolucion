@@ -1,5 +1,5 @@
 """
-Step 8 — SwinIR (Vision Transformer) super-resolution inference.
+Step 5 — SwinIR (Vision Transformer) super-resolution inference.
 
 Runs the official SwinIR-M x4 real-world model (GAN variant, trained with
 the BSRGAN degradation model) on every LR frame produced by Step 2 and
@@ -12,8 +12,8 @@ The official SwinIR repository is cloned automatically and the pretrained
 weights are downloaded if not found in weights/.
 
 Usage:
-    python step8_swinir_inference.py
-    python step8_swinir_inference.py --tile 256   # reduce tile size on low-VRAM GPUs
+    python step5_swinir_inference.py
+    python step5_swinir_inference.py --tile 256   # reduce tile size on low-VRAM GPUs
 """
 
 import sys
@@ -120,7 +120,7 @@ def tiled_forward(model, ten, tile, window_size):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Step 8: SwinIR super-resolution')
+    parser = argparse.ArgumentParser(description='Step 5: SwinIR super-resolution')
     parser.add_argument('--tile', type=int, default=0,
                         help='Tile size for inference (0=no tiling, 256 for low VRAM)')
     parser.add_argument('--cpu', action='store_true',
@@ -133,7 +133,7 @@ def main():
     from tqdm import tqdm
 
     print('=' * 60)
-    print('STEP 8 — SwinIR-M x4 (Vision Transformer) inference')
+    print('STEP 5 — SwinIR-M x4 (Vision Transformer) inference')
     print('=' * 60)
 
     clone_repo()
@@ -182,7 +182,7 @@ def main():
     print(f'  Saved to   : {FRAMES_SWINIR_DIR}  ({count} files)')
     if errors:
         print(f'  Errors     : {errors} frames skipped (corrupt input)')
-    print('\nStep 8 complete. Run step9_finetune_esrgan.py next (or step10 for metrics).')
+    print('\nStep 5 complete. Run step6_finetune_esrgan.py next (or step7 for metrics).')
 
 
 if __name__ == '__main__':

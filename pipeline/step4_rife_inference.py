@@ -162,7 +162,7 @@ def main():
     print(f'  Saved to       : {FRAMES_RIFE_DIR}')
     if errors:
         print(f'  Errors         : {errors} pairs failed')
-    print('\nStep 4 complete. Run step5_compute_metrics.py next.')
+    print('\nStep 4 complete. Run step5_swinir_inference.py next.')
 
 
 if __name__ == '__main__':

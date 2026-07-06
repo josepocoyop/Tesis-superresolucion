@@ -1,12 +1,12 @@
 """
-Step 10 — Thesis metrics: all methods, overall and per lighting condition.
+Step 7 — Metrics: all methods, overall and per lighting condition.
 
 Computes PSNR, SSIM and LPIPS against the HR ground truth for every method
 whose output directory exists:
     output/bicubic/        Bicubic x4          (baseline)
     output/sr/             ESRGAN x4           (pretrained, GAN)
-    output/swinir/         SwinIR x4           (Transformer)     [step8]
-    output/sr_finetuned/   ESRGAN x4 fine-tuned                  [step9]
+    output/swinir/         SwinIR x4           (Transformer)     [step5]
+    output/sr_finetuned/   ESRGAN x4 fine-tuned                  [step6]
 
 Results are grouped by lighting condition parsed from the frame filename
 prefix (day_, night_, indoor_; see config.condition_of). To satisfy the
@@ -19,8 +19,8 @@ Outputs:
     (prints a LaTeX-ready table for the thesis document)
 
 Usage:
-    python step10_thesis_metrics.py
-    python step10_thesis_metrics.py --no-lpips
+    python step7_compute_metrics.py
+    python step7_compute_metrics.py --no-lpips
 """
 
 import sys
@@ -75,7 +75,7 @@ def compute_lpips(fn, ref_bgr, pred_bgr):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Step 10: Thesis metrics (all methods)')
+    parser = argparse.ArgumentParser(description='Step 7: Metrics (all methods)')
     parser.add_argument('--no-lpips', action='store_true',
                         help='Skip LPIPS computation (runs on CPU, can be slow)')
     args = parser.parse_args()
@@ -86,14 +86,14 @@ def main():
     from tqdm import tqdm
 
     print('=' * 60)
-    print('STEP 10 — Thesis metrics (all methods, per condition)')
+    print('STEP 7 — Metrics (all methods, per condition)')
     print('=' * 60)
 
     active = [(k, lbl, d) for k, lbl, d in METHODS
               if d.exists() and any(d.glob('*.png'))]
     if len(active) < 2:
         print('ERROR: Need at least the bicubic baseline plus one SR method.')
-        print('       Run steps 2, 3 (and optionally 8, 9) first.')
+        print('       Run steps 2, 3 (and optionally 5, 6) first.')
         sys.exit(1)
     print('Methods found:')
     for k, lbl, d in active:
@@ -185,28 +185,34 @@ def main():
     for cond, agg in summary['by_condition'].items():
         print_block(f'Condición: {cond}', agg)
 
-    # LaTeX table for the thesis document
-    print('=' * 60)
-    print('LATEX TABLE (paste into the thesis)')
-    print('=' * 60)
-    cols = 'lccc' if lpips_fn is not None else 'lcc'
-    print(f'\\begin{{tabular}}{{{cols}}}')
-    print('\\hline')
-    hdr = 'Método & PSNR (dB) $\\uparrow$ & SSIM $\\uparrow$'
-    if lpips_fn is not None:
-        hdr += ' & LPIPS $\\downarrow$'
-    print(hdr + ' \\\\')
-    print('\\hline')
-    agg = summary['overall']
-    for key, lbl, _ in active:
-        line = f'{lbl} & {agg.get(f"psnr_{key}", 0):.2f} & {agg.get(f"ssim_{key}", 0):.4f}'
+    # LaTeX tables for the thesis document: one general, one per condition
+    def print_latex(title, agg):
+        cols = 'lccc' if lpips_fn is not None else 'lcc'
+        print(f'% {title} (n={agg["n_frames"]})')
+        print(f'\\begin{{tabular}}{{{cols}}}')
+        print('\\hline')
+        hdr = 'Método & PSNR (dB) $\\uparrow$ & SSIM $\\uparrow$'
         if lpips_fn is not None:
-            line += f' & {agg.get(f"lpips_{key}", 0):.4f}'
-        print(line + ' \\\\')
-    print('\\hline')
-    print('\\end{tabular}')
+            hdr += ' & LPIPS $\\downarrow$'
+        print(hdr + ' \\\\')
+        print('\\hline')
+        for key, lbl, _ in active:
+            line = f'{lbl} & {agg.get(f"psnr_{key}", 0):.2f} & {agg.get(f"ssim_{key}", 0):.4f}'
+            if lpips_fn is not None:
+                line += f' & {agg.get(f"lpips_{key}", 0):.4f}'
+            print(line + ' \\\\')
+        print('\\hline')
+        print('\\end{tabular}')
+        print()
 
-    print('\nStep 10 complete. Run step11_thesis_figures.py next.')
+    print('=' * 60)
+    print('LATEX TABLES (paste into the thesis)')
+    print('=' * 60)
+    print_latex('General', summary['overall'])
+    for cond, agg in summary['by_condition'].items():
+        print_latex(f'Condición: {cond}', agg)
+
+    print('Step 7 complete. Run step8_generate_figures.py next.')
 
 
 if __name__ == '__main__':

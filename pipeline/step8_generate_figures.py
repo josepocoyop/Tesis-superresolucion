@@ -1,18 +1,21 @@
 """
-Step 11 — Thesis figures: multi-method comparison and per-condition metrics.
+Step 8 — Thesis figures: multi-method comparison and per-condition metrics.
 
 Generates, at 300 DPI in output/thesis_figures/:
     thesis_fig_comparison_<condition>.png
         One comparison strip per lighting condition: LR input, bicubic,
         ESRGAN, SwinIR, ESRGAN fine-tuned (those available) and HR reference.
+    thesis_fig_zoom_<condition>.png
+        Same panels cropped to a central detail region, where the texture
+        differences between methods are most visible.
     thesis_fig_metrics_by_condition.png
         Grouped bar chart of LPIPS per method and condition (falls back to
-        PSNR if LPIPS was skipped in step10).
+        PSNR if LPIPS was skipped in step7).
 
-Run step10_thesis_metrics.py first.
+Run step7_compute_metrics.py first.
 
 Usage:
-    python step11_thesis_figures.py
+    python step8_generate_figures.py
 """
 
 import sys
@@ -72,6 +75,39 @@ def comparison_strip(name: str, active, out_path: Path):
     print(f'  Saved: {out_path.name}')
 
 
+def zoom_strip(name: str, active, out_path: Path):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+    hr = load_rgb(FRAMES_HR_DIR / name)
+    lr = load_rgb(FRAMES_LR_DIR / name)
+    lr_up = np.array(Image.fromarray(lr).resize(
+        (lr.shape[1] * SCALE_FACTOR, lr.shape[0] * SCALE_FACTOR), Image.NEAREST))
+
+    panels = [(lr_up, 'Entrada LR (NN)')]
+    panels += [(load_rgb(d / name), lbl) for _, lbl, d in active]
+    panels.append((hr, 'Referencia HR'))
+
+    # Central crop, one quarter of the frame, same region in every panel
+    h, w = hr.shape[:2]
+    ch, cw = h // 4, w // 4
+    y0, x0 = (h - ch) // 2, (w - cw) // 2
+
+    n = len(panels)
+    fig, axes = plt.subplots(1, n, figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / n * 0.85))
+    for ax, (img, lbl) in zip(axes, panels):
+        ih, iw = img.shape[:2]
+        yy, xx = min(y0, max(ih - ch, 0)), min(x0, max(iw - cw, 0))
+        ax.imshow(img[yy:yy + ch, xx:xx + cw])
+        ax.set_title(lbl, fontsize=7)
+        ax.axis('off')
+    fig.tight_layout(pad=0.3)
+    fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
+    plt.close(fig)
+    print(f'  Saved: {out_path.name}')
+
+
 def metrics_bar_chart(summary: dict, active, out_path: Path):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -110,12 +146,12 @@ def main():
     import pandas as pd
 
     print('=' * 60)
-    print('STEP 11 — Thesis figures')
+    print('STEP 8 — Thesis figures')
     print('=' * 60)
 
     summary_path = METRICS_DIR / 'thesis_summary.json'
     if not summary_path.exists():
-        print(f'ERROR: {summary_path} not found. Run step10_thesis_metrics.py first.')
+        print(f'ERROR: {summary_path} not found. Run step7_compute_metrics.py first.')
         sys.exit(1)
     summary = json.loads(summary_path.read_text())
 
@@ -134,18 +170,20 @@ def main():
     for name in sorted(common):
         by_cond.setdefault(condition_of(name), []).append(name)
 
-    print('\nComparison strips:')
+    print('\nComparison and zoom strips:')
     for cond, names in sorted(by_cond.items()):
         pick = names[len(names) // 2]
-        out = THESIS_FIGURES_DIR / f'thesis_fig_comparison_{cond}.png'
-        comparison_strip(pick, active, out)
+        comparison_strip(pick, active,
+                         THESIS_FIGURES_DIR / f'thesis_fig_comparison_{cond}.png')
+        zoom_strip(pick, active,
+                   THESIS_FIGURES_DIR / f'thesis_fig_zoom_{cond}.png')
 
     print('\nMetrics chart:')
     metrics_bar_chart(summary, active,
                       THESIS_FIGURES_DIR / 'thesis_fig_metrics_by_condition.png')
 
     print(f'\nAll thesis figures saved in: {THESIS_FIGURES_DIR}')
-    print('Step 11 complete.')
+    print('Step 8 complete.')
 
 
 if __name__ == '__main__':
