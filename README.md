@@ -121,6 +121,51 @@ Los métodos comparados son: bicúbico (tradicional), ESRGAN preentrenado (GAN),
 
 ## Scripts del pipeline
 
+```mermaid
+flowchart TD
+    V[("dataset/raw_videos/<br>day_*.mp4 - night_*.mp4 - indoor_*.mp4")] --> S1
+
+    subgraph OBJ1["Objetivo 1: dataset"]
+        S1["step1_get_dataset<br>Valida que los videos fuente<br>existan y sean legibles"]
+        S2["step2_prepare_frames<br>Extrae fotogramas HR y fabrica los LR:<br>blur σ=1.5, bicúbico ÷4, JPEG q=50, ruido σ=5.<br>Genera también la línea base bicúbica ×4"]
+        S1 --> S2
+    end
+
+    subgraph OBJ2["Objetivo 2: diseño del modelo"]
+        S3["step3_esrgan_inference<br>Real-ESRGAN ×4 preentrenado, GAN<br>LR a output/sr/"]
+        S4["step4_rife_inference<br>RIFE ×2: interpola fotogramas consecutivos<br>para duplicar la fluidez temporal"]
+        S5["step5_swinir_inference<br>SwinIR ×4, Swin Transformer<br>LR a output/swinir/"]
+    end
+
+    subgraph OBJ3["Objetivo 3: entrenamiento"]
+        S6["step6_finetune_esrgan<br>Fine-tuning de RealESRGAN_x4plus con los pares<br>LR/HR propios, pérdidas L1 + VGG + adversarial.<br>Exporta pesos afinados y output/sr_finetuned/"]
+    end
+
+    subgraph OBJ4["Objetivo 4: validación"]
+        S7["step7_compute_metrics<br>PSNR, SSIM y LPIPS de los 4 métodos,<br>global y por condición de iluminación.<br>Imprime las tablas LaTeX de la tesis"]
+        S8["step8_generate_figures<br>Comparaciones visuales, acercamientos de detalle,<br>gráfica de métricas, curva de pérdidas<br>del entrenamiento y figura RIFE, a 300 DPI"]
+        S7 --> S8
+    end
+
+    S2 --> S3
+    S2 --> S5
+    S2 --> S6
+    S3 --> S4
+    S3 --> S7
+    S5 --> S7
+    S6 --> S7
+    S4 --> S8
+
+    classDef data fill:#1f6feb,stroke:#0d419d,color:#fff
+    classDef model fill:#8957e5,stroke:#553098,color:#fff
+    classDef train fill:#bf4b8a,stroke:#8a2c62,color:#fff
+    classDef eval fill:#238636,stroke:#196c2e,color:#fff
+    class V,S1,S2 data
+    class S3,S4,S5 model
+    class S6 train
+    class S7,S8 eval
+```
+
 | Script | Qué hace | Objetivo de la tesis |
 |---|---|---|
 | `config.py` | Rutas, hiperparámetros y parámetros compartidos. Detecta Colab automáticamente | Todos |
