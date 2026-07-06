@@ -8,12 +8,10 @@
 
 Proyecto de tesis: **"Desarrollo de un modelo de inteligencia artificial para el escalamiento visual en videovigilancia mediante técnicas de superresolución y transformadores visuales"**
 
-| | |
-|---|---|
-| **Autor** | Jose Rodriguez Botello (UFPS, Cúcuta) |
-| **Director** | Sergio Castro Casadiego (UFPS) |
-| **Co-director** | Sebastian Rojas-Ortega (University of Delaware) |
-| **Artículo asociado** | ColCom 2026, ya enviado (`ColCom Paper/`) |
+- **Autor:** Jose Rodriguez Botello (UFPS, Cúcuta)
+- **Director:** Sergio Castro Casadiego (UFPS)
+- **Co-director:** Sebastian Rojas-Ortega (University of Delaware)
+- **Artículo asociado:** ColCom 2026, ya enviado (`ColCom Paper/`)
 
 Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetivos específicos del anteproyecto aprobado**, qué scripts implementan cada uno, y qué falta por ejecutar. Los jurados verificarán el cumplimiento de cada objetivo, así que cada sección indica la evidencia concreta que la tesis debe presentar.
 
