@@ -1,6 +1,6 @@
 # Reproducibilidad del artículo ColCom 2026
 
-Copia congelada de los scripts y resultados usados para generar el artículo sometido a ColCom 2026 (`../main.pdf`). **No editar estos archivos**: son el registro de lo que produjo la Tabla I y las Figuras 4 a 7 del artículo. El desarrollo de la tesis continúa en `Jose/pipeline/`.
+Copia congelada de los scripts y resultados usados para generar el artículo enviado a ColCom 2026 (`../main.pdf`). **No editar estos archivos**: son el registro de lo que produjo la Tabla I y las Figuras 4 a 7 del artículo. El desarrollo de la tesis continúa en `Jose/pipeline/`.
 
 ## Contenido
 

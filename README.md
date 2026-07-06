@@ -5,7 +5,7 @@ Proyecto de tesis: **"Desarrollo de un modelo de inteligencia artificial para el
 - **Autor:** Jose Rodriguez Botello (UFPS, Cúcuta)
 - **Director:** Sergio Castro Casadiego (UFPS)
 - **Co-director:** Sebastian Rojas-Ortega (University of Delaware)
-- **Artículo asociado:** ColCom 2026 (ya sometido, `ColCom Paper/`)
+- **Artículo asociado:** ColCom 2026 (ya enviado, `ColCom Paper/`)
 
 Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetivos específicos del anteproyecto aprobado**, qué scripts implementan cada uno, y qué falta por ejecutar. Los jurados verificarán el cumplimiento de cada objetivo, así que cada sección indica la evidencia concreta que la tesis debe presentar.
 
@@ -166,7 +166,7 @@ Jose/
 │   ├── metrics/               CSV y JSON de métricas
 │   └── thesis_figures/        Figuras para la tesis (300 DPI)
 ├── weights/                   Pesos preentrenados y afinados
-├── ColCom Paper/              Artículo IEEE (ya sometido)
+├── ColCom Paper/              Artículo IEEE (ya enviado)
 │   └── reproducibility/       Copia congelada de scripts y métricas del artículo (no editar)
 ├── Archive/                   Código viejo fuera de uso (no está en el repo)
 └── Anteproyecto.pdf           Anteproyecto aprobado
