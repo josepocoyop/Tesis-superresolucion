@@ -1,0 +1,28 @@
+CLAUDE.md
+.claude/
+
+__pycache__/
+*.pyc
+
+# datos pesados, se regeneran con el pipeline
+dataset/
+output/*
+!output/metrics/
+weights/
+SwinIR/
+Real-ESRGAN/
+
+# scripts viejos
+jose_modelo_python.py
+run_pipeline.py
+
+# latex
+*.aux
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+ColCom Paper/main.log
+
+Thumbs.db
+.DS_Store
