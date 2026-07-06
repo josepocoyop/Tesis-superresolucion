@@ -12,9 +12,8 @@ weights/
 SwinIR/
 Real-ESRGAN/
 
-# scripts viejos
-jose_modelo_python.py
-run_pipeline.py
+# codigo viejo que ya no se usa
+Archive/
 
 # latex
 *.aux

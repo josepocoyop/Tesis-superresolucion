@@ -91,6 +91,25 @@ Los métodos comparados son: bicúbico (tradicional), ESRGAN preentrenado (GAN),
 
 ---
 
+## Scripts del pipeline
+
+| Script | Qué hace | Objetivo de la tesis |
+|---|---|---|
+| `config.py` | Rutas, hiperparámetros y parámetros compartidos. Detecta Colab automáticamente | Todos |
+| `step1_get_dataset.py` | Valida los videos fuente en `dataset/raw_videos/` | Obj. 1 |
+| `step2_prepare_frames.py` | Extrae fotogramas HR y genera los LR con degradación sintética (blur, bicúbico ×4, JPEG, ruido). También crea la línea base bicúbica | Obj. 1 |
+| `step3_esrgan_inference.py` | Superresolución con Real-ESRGAN ×4 preentrenado (GAN) | Obj. 2 |
+| `step4_rife_inference.py` | Interpolación de fotogramas con RIFE ×2 (fluidez temporal) | Obj. 2 |
+| `step5_compute_metrics.py` | PSNR/SSIM/LPIPS, solo bicúbico vs ESRGAN | Paper ColCom |
+| `step6_generate_figures.py` | Figuras 4 a 7 del artículo a 300 DPI | Paper ColCom |
+| `step7_compile_results.py` | Tabla LaTeX y texto sugerido para el artículo | Paper ColCom |
+| `step8_swinir_inference.py` | Superresolución con SwinIR ×4 (transformador visual) | Obj. 2 |
+| `step9_finetune_esrgan.py` | Fine-tuning de Real-ESRGAN sobre el dataset propio de CCTV, con hiperparámetros documentados. Exporta los pesos afinados y corre inferencia | Obj. 3 |
+| `step10_thesis_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime la tabla LaTeX de la tesis | Obj. 4 |
+| `step11_thesis_figures.py` | Tiras de comparación visual por condición y gráfica de métricas, a 300 DPI | Obj. 4 |
+
+Los steps 5, 6 y 7 pertenecen al artículo de ColCom y ya cumplieron su función; para la tesis los reemplazan los steps 10 y 11, que cubren los cuatro métodos y el análisis por condición.
+
 ## Orden de ejecución (Google Colab, GPU T4)
 
 ```
@@ -106,7 +125,7 @@ python pipeline/step10_thesis_metrics.py   # métricas por método y condición 
 python pipeline/step11_thesis_figures.py   # figuras de la tesis (Obj. 4)
 ```
 
-Los steps 5, 6 y 7 generan las métricas, figuras y tabla del **paper de ColCom** (dos métodos, sin condiciones); siguen disponibles pero para la tesis se usan 10 y 11, que cubren los cuatro métodos y el análisis por condición. Una copia congelada de los scripts y métricas exactos del artículo está en `ColCom Paper/reproducibility/`; esa carpeta no se toca, todo el trabajo de tesis se hace en `pipeline/`.
+Una copia congelada de los scripts y métricas exactos del artículo está en `ColCom Paper/reproducibility/`; esa carpeta no se toca, todo el trabajo de tesis se hace en `pipeline/`.
 
 Consejos para Colab:
 - Subir las carpetas `pipeline/`, `dataset/raw_videos/` y `weights/` a `/content/jose/` (o montar Drive). `config.py` detecta Colab automáticamente.
@@ -117,7 +136,7 @@ Consejos para Colab:
 
 ## Trabajo pendiente en el documento de tesis
 
-El anteproyecto (`Proyecto - ACTUAL.pdf`) tiene los capítulos 1 a 4 casi completos. Para convertirlo en tesis falta:
+El anteproyecto (`Anteproyecto.pdf`) tiene los capítulos 1 a 4 casi completos. Para convertirlo en tesis falta:
 
 1. **Sección 4.1.2:** corregir la redacción; describe una implementación transformer que en ese momento no existía. Ahora debe describir SwinIR tal como se integró en step8.
 2. **Sección 4.4.2:** reemplazar el marcador "AQUÍ IRIA LAS LIBRERIAS UTILIZADAS" con las librerías reales: PyTorch, basicsr, realesrgan, timm, OpenCV, scikit-image, lpips, NumPy, pandas, matplotlib.
@@ -149,5 +168,6 @@ Jose/
 ├── weights/                   Pesos preentrenados y afinados
 ├── ColCom Paper/              Artículo IEEE (ya sometido)
 │   └── reproducibility/       Copia congelada de scripts y métricas del artículo (no editar)
-└── Proyecto - ACTUAL.pdf      Anteproyecto aprobado
+├── Archive/                   Código viejo fuera de uso (no está en el repo)
+└── Anteproyecto.pdf           Anteproyecto aprobado
 ```
