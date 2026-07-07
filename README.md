@@ -68,7 +68,7 @@ flowchart LR
 
 > Diseñar un modelo de inteligencia artificial basado en transformadores visuales y técnicas de superresolución, con el propósito de mejorar la calidad de los videos mediante la optimización de la resolución y la fluidez.
 
-**Cómo se cumple:** el diseño es un **pipeline modular** que integra las tres familias exigidas por el objetivo:
+**Cómo se cumple:** el diseño es un pipeline que combina las tres partes que pide el objetivo:
 
 1. **Superresolución con GAN:** Real-ESRGAN ×4 (`step3_esrgan_inference.py`), arquitectura RRDBNet.
 2. **Transformadores visuales:** SwinIR-M ×4 (`step5_swinir_inference.py`), modelo oficial basado en Swin Transformer entrenado para superresolución de mundo real. Este es el componente que cumple explícitamente la parte de "transformadores visuales" del título de la tesis.
@@ -77,7 +77,7 @@ flowchart LR
 **Evidencia para la tesis:** diagrama del pipeline (ya existe: `ColCom Paper/figures/pipeline_cctv.png`), descripción de las arquitecturas RRDBNet, Swin Transformer y RIFE (figuras 2 y 3 del paper; falta agregar una figura de la arquitectura SwinIR al documento de tesis).
 
 > [!WARNING]
-> La sección 4.1.2 del anteproyecto afirma que ya se implementó una arquitectura transformer, lo cual no era cierto en ese momento. Con SwinIR integrado (step5), esa afirmación queda respaldada, pero la redacción del capítulo debe corregirse para describir lo que realmente se hizo.
+> La sección 4.1.2 del anteproyecto dice que ya se había implementado una arquitectura transformer, pero en ese momento todavía no se había hecho. Con SwinIR (step5) ya quedó implementada; solo falta corregir la redacción del capítulo para contar lo que realmente se hizo.
 
 ---
 
@@ -103,7 +103,7 @@ flowchart LR
 
 | Requisito del objetivo | Implementación |
 |---|---|
-| PSNR y SSIM | `step7_compute_metrics.py` calcula PSNR, SSIM y además LPIPS (métrica perceptual, va más allá de lo prometido) para todos los métodos |
+| PSNR y SSIM | `step7_compute_metrics.py` calcula PSNR, SSIM y además LPIPS (métrica perceptual) para todos los métodos |
 | Evaluación cualitativa | `step8_generate_figures.py` genera tiras de comparación visual por condición de iluminación (entrada LR, cada método, referencia HR) a 300 DPI |
 | Comparación con enfoques tradicionales | La interpolación **bicúbica ×4** es la línea base tradicional en todas las tablas y figuras |
 | Análisis por condición | step7 agrega resultados por condición (day/night/indoor) además del global, y genera las tablas LaTeX listas para pegar en la tesis |
@@ -177,7 +177,7 @@ flowchart TD
 | `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición, gráfica de métricas, curva de pérdidas del entrenamiento y figura de interpolación RIFE, a 300 DPI | Obj. 3 y 4 |
 
 > [!WARNING]
-> El pipeline del artículo de ColCom (versión de dos métodos, sin condiciones) quedó congelado en `ColCom Paper/reproducibility/pipeline/`. Esa carpeta no se toca: todo el trabajo de tesis se hace en `pipeline/`.
+> Los scripts y métricas que se usaron para el artículo de ColCom están guardados en `ColCom Paper/reproducibility/`. Esa carpeta no se modifica, para poder reproducir el artículo tal como se envió. Todo el trabajo de la tesis va en `pipeline/`.
 
 ## Orden de ejecución (local, GPU NVIDIA)
 
