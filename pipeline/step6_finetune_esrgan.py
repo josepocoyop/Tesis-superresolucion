@@ -94,6 +94,9 @@ manual_seed: 0
 high_order_degradation: False
 
 gt_usm: True
+l1_gt_usm: True
+percep_gt_usm: True
+gan_gt_usm: False
 
 datasets:
   train:
@@ -218,7 +221,7 @@ def export_weights(iters: int):
         sys.exit(1)
     last = candidates[-1]
     shutil.copy2(last, ESRGAN_FT_WEIGHTS)
-    print(f'Fine-tuned weights exported: {last.name} → {ESRGAN_FT_WEIGHTS}')
+    print(f'Fine-tuned weights exported: {last.name} -> {ESRGAN_FT_WEIGHTS}')
 
 
 def run_inference(tile: int):

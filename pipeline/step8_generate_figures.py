@@ -196,7 +196,9 @@ def rife_strip(out_path: Path):
         return
     mid = len(origs) // 2
     a, b = origs[mid], origs[mid + 1]
-    interp = FRAMES_RIFE_DIR / a.name.replace('_orig', '_rife')
+    # the interpolated frame is the odd index between the two originals
+    idx = int(a.stem.split('_')[1]) + 1
+    interp = FRAMES_RIFE_DIR / f'frame_{idx:06d}_rife.png'
     if not interp.exists():
         print('  Interpolated frame missing; RIFE figure skipped.')
         return

@@ -123,7 +123,7 @@ def download_from_pexels(api_key: str, count: int = 2):
                   f'({best_file["width"]}x{best_file["height"]})...')
             urllib.request.urlretrieve(best_file['link'], out_path)
             downloaded.append(out_path)
-            print(f'  Saved → {out_path}')
+            print(f'  Saved -> {out_path}')
 
     return downloaded
 

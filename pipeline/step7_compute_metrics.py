@@ -143,7 +143,7 @@ def main():
     df = pd.DataFrame(records)
     csv_path = METRICS_DIR / 'thesis_metrics.csv'
     df.to_csv(csv_path, index=False)
-    print(f'\nPer-frame metrics saved → {csv_path}')
+    print(f'\nPer-frame metrics saved -> {csv_path}')
 
     def aggregate(sub):
         out = {'n_frames': len(sub)}
@@ -161,7 +161,7 @@ def main():
     summary_path = METRICS_DIR / 'thesis_summary.json'
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)
-    print(f'Summary JSON → {summary_path}\n')
+    print(f'Summary JSON -> {summary_path}\n')
 
     # Console table
     def print_block(title, agg):

@@ -158,7 +158,7 @@ def main():
     rife_count = len(list(FRAMES_RIFE_DIR.glob('*.png')))
     print(f'\nRIFE interpolation complete.')
     print(f'  Input pairs    : {len(pairs)}')
-    print(f'  Output frames  : {rife_count}  (≈2x frame rate)')
+    print(f'  Output frames  : {rife_count}  (~2x frame rate)')
     print(f'  Saved to       : {FRAMES_RIFE_DIR}')
     if errors:
         print(f'  Errors         : {errors} pairs failed')
