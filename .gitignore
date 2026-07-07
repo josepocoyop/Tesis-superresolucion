@@ -8,6 +8,7 @@ __pycache__/
 dataset/
 output/*
 !output/metrics/
+!output/thesis_figures/
 weights/
 SwinIR/
 Real-ESRGAN/

@@ -58,7 +58,7 @@ flowchart LR
 | Adecuación para entrenamiento y validación | Los pares LR/HR de step2 alimentan tanto el fine-tuning (step6) como las métricas (step7) |
 
 > [!IMPORTANT]
-> **Acción pendiente de Jose:** conseguir 3 o 4 videos HD de vigilancia (cámara fija, exterior/interior) y nombrarlos con los prefijos de condición. Fuente sugerida: Pexels (buscar "surveillance camera outdoor", "security camera night", descarga gratuita). Colocarlos en `dataset/raw_videos/` y correr steps 1-2.
+> Ya hay un primer video de día (`day_street.mp4`, cámara real, 848x480) con el que se corrió todo el pipeline. **Falta conseguir videos de noche y de interior** (`night_*.mp4`, `indoor_*.mp4`), ponerlos en `dataset/raw_videos/` y volver a correr los steps 1-2 para completar la comparación por condición de iluminación.
 
 **Evidencia para la tesis:** descripción del protocolo de degradación (ya redactado en el paper de ColCom), tabla con número de fotogramas por condición, figura de ejemplo LR vs HR.
 
@@ -91,7 +91,7 @@ flowchart LR
 - **Hiperparámetros ajustables** (definidos en `config.py` y registrados con cada corrida): learning rate (1e-4), batch size (4), iteraciones (5000 por defecto, ajustable con `--iters`), scheduler MultiStepLR con reducción al 80% del entrenamiento.
 - El modelo afinado se exporta a `weights/RealESRGAN_x4plus_finetuned.pth` y se evalúa como un método más en step7.
 
-**Requisito:** GPU NVIDIA con CUDA. En la RTX 4070 Ti del equipo local, las 5000 iteraciones deberían tomar alrededor de una hora (estimado; en una T4 de Colab serían 2 a 3 horas).
+**Requisito:** GPU NVIDIA con CUDA. En la RTX 4070 Ti del equipo local, las 5000 iteraciones tomaron 51 minutos.
 
 **Evidencia para la tesis:** tabla de hiperparámetros, curva de pérdidas del entrenamiento (step8 la genera automáticamente a partir de los logs de basicsr), y comparación cuantitativa preentrenado vs fine-tuned en la Tabla de resultados. El ajuste de hiperparámetros se documenta corriendo al menos dos configuraciones (por ejemplo `--iters 2000` y `--iters 5000`) y reportando cuál dio mejor LPIPS.
 
@@ -204,6 +204,39 @@ Notas:
 - Todo corre en la máquina local (RTX 4070 Ti, 32 GB de RAM); los scripts se ejecutan desde la carpeta raíz del proyecto y las rutas se resuelven solas.
 - Los resultados quedan en `output/metrics/` y `output/thesis_figures/`, listos para el documento.
 - `config.py` también detecta Google Colab automáticamente por si algún día se corre allá, pero no es el flujo principal.
+
+---
+
+## Primeros resultados (julio 2026)
+
+El pipeline completo (steps 1 a 8) ya se ejecutó en la máquina local con el video `day_street.mp4` (cámara de seguridad real, 848x480, 15 fps). Se usaron 60 fotogramas y el fine-tuning tomó 51 minutos para las 5000 iteraciones.
+
+| Método | PSNR (dB) ↑ | SSIM ↑ | LPIPS ↓ |
+|---|---|---|---|
+| Bicúbica ×4 (referencia) | 20.43 | 0.5134 | 0.7140 |
+| ESRGAN ×4 (preentrenado) | 18.84 | 0.5197 | 0.3111 |
+| SwinIR ×4 (Transformer) | 18.79 | 0.5172 | 0.3332 |
+| **ESRGAN ×4 (fine-tuned)** | **20.77** | **0.6430** | **0.1380** |
+
+Lo que muestran estos números:
+
+- El **modelo afinado con nuestros propios datos ganó en las tres métricas**. Es la evidencia principal del objetivo 3: entrenar sí mejoró el modelo.
+- ESRGAN y SwinIR preentrenados tienen PSNR menor que el bicúbico pero LPIPS mucho mejor. Es el comportamiento esperado (percepción vs distorsión) y así hay que explicarlo en el capítulo de resultados.
+- La tabla por condición todavía tiene una sola condición (día). Con los videos de noche e interior se completa.
+
+Comparación visual (recorte central del fotograma, cada método):
+
+![Comparación con acercamiento](output/thesis_figures/thesis_fig_zoom_day.png)
+
+Curva de pérdidas del fine-tuning:
+
+![Curva de entrenamiento](output/thesis_figures/thesis_fig_training_loss.png)
+
+Los archivos quedaron en:
+
+- `output/metrics/thesis_metrics.csv` y `thesis_summary.json` (métricas por fotograma y resumen)
+- `output/thesis_figures/` (figuras a 300 DPI, listas para la tesis)
+- `weights/RealESRGAN_x4plus_finetuned.pth` (pesos del modelo afinado; no está en el repo, se regenera con step6)
 
 ---
 
