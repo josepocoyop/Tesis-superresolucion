@@ -94,7 +94,7 @@ def comparison_strip(name: str, active, out_path: Path):
     cols = (n + 1) // 2
     ratio = hr.shape[0] / hr.shape[1]
     fig, axes = plt.subplots(2, cols,
-                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.15))
+                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.35))
     axes = axes.ravel()
     for ax in axes[n:]:
         ax.axis('off')
@@ -102,9 +102,10 @@ def comparison_strip(name: str, active, out_path: Path):
         ax.imshow(img)
         ax.add_patch(Rectangle((x0, y0), cw, ch, fill=False,
                                edgecolor=ROI_COLOR, linewidth=1.2))
-        ax.set_title(lbl, fontsize=7)
+        ax.set_title(lbl, fontsize=7, pad=4)
         ax.axis('off')
-    fig.tight_layout(pad=0.3)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.94, bottom=0.01,
+                        wspace=0.04, hspace=0.28)
     fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
     plt.close(fig)
     print(f'  Saved: {out_path.name}')
@@ -122,7 +123,7 @@ def zoom_strip(name: str, active, out_path: Path):
     cols = (n + 1) // 2
     ratio = ch / cw
     fig, axes = plt.subplots(2, cols,
-                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.3))
+                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.5))
     axes = axes.ravel()
     for ax in axes[n:]:
         ax.axis('off')
@@ -131,14 +132,15 @@ def zoom_strip(name: str, active, out_path: Path):
         yy, xx = min(y0, max(ih - ch, 0)), min(x0, max(iw - cw, 0))
         ax.imshow(img[yy:yy + ch, xx:xx + cw])
         if lbl == HIGHLIGHT_LABEL:
-            ax.set_title(lbl, fontsize=7, color=ROI_COLOR, fontweight='bold')
+            ax.set_title(lbl, fontsize=7, color=ROI_COLOR, fontweight='bold', pad=4)
             ax.add_patch(Rectangle((0, 0), 1, 1, transform=ax.transAxes,
                                    fill=False, edgecolor=ROI_COLOR,
                                    linewidth=2, clip_on=False))
         else:
-            ax.set_title(lbl, fontsize=7)
+            ax.set_title(lbl, fontsize=7, pad=4)
         ax.axis('off')
-    fig.tight_layout(pad=0.3)
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.94, bottom=0.01,
+                        wspace=0.04, hspace=0.30)
     fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
     plt.close(fig)
     print(f'  Saved: {out_path.name}')
