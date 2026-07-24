@@ -2,6 +2,8 @@ CLAUDE.md
 .claude/
 correcciones_tesis.md
 conclusiones_tesis.md
+Tesis.docx
+*.rar
 
 __pycache__/
 *.pyc
