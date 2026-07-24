@@ -1,0 +1,16 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4070 Ti",
+  "timed_frames": 20,
+  "lr_size": [
+    212,
+    120
+  ],
+  "sr_size": [
+    848,
+    480
+  ],
+  "esrgan_weights": "RealESRGAN_x4plus_finetuned.pth",
+  "esrgan_ms_per_frame": 43.8,
+  "rife_ms_per_frame": 13.5,
+  "pipeline_ms_per_input_frame": 50.5
+}

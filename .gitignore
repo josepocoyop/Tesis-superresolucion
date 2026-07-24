@@ -1,5 +1,6 @@
 CLAUDE.md
 .claude/
+correcciones_tesis.md
 
 __pycache__/
 *.pyc
@@ -18,6 +19,8 @@ Archive/
 
 # latex
 *.aux
+figuras_tesis/*.pdf
+figuras_tesis/*.log
 *.bbl
 *.blg
 *.out
