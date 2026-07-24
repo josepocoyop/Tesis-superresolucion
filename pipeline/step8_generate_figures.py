@@ -56,9 +56,19 @@ def load_rgb(path: Path):
     return np.array(Image.open(path).convert('RGB'))
 
 
-def comparison_strip(name: str, active, out_path: Path):
+ROI_COLOR       = '#D62828'
+HIGHLIGHT_LABEL = 'ESRGAN fine-tuned'
+
+
+def _roi(img_shape):
+    """Central region, one quarter of the frame."""
+    h, w = img_shape[:2]
+    ch, cw = h // 4, w // 4
+    return (h - ch) // 2, (w - cw) // 2, ch, cw
+
+
+def _build_panels(name: str, active):
     import numpy as np
-    import matplotlib.pyplot as plt
     from PIL import Image
 
     hr = load_rgb(FRAMES_HR_DIR / name)
@@ -66,14 +76,32 @@ def comparison_strip(name: str, active, out_path: Path):
     lr_up = np.array(Image.fromarray(lr).resize(
         (lr.shape[1] * SCALE_FACTOR, lr.shape[0] * SCALE_FACTOR), Image.NEAREST))
 
-    panels = [(lr_up, 'Entrada LR (NN)')]
+    panels = [(lr_up, 'Entrada LR (ampliada)')]
     panels += [(load_rgb(d / name), lbl) for _, lbl, d in active]
     panels.append((hr, 'Referencia HR'))
+    return panels, hr
+
+
+def comparison_strip(name: str, active, out_path: Path):
+    """2-row grid of full frames, each with the analyzed region marked."""
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+
+    panels, hr = _build_panels(name, active)
+    y0, x0, ch, cw = _roi(hr.shape)
 
     n = len(panels)
-    fig, axes = plt.subplots(1, n, figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / n * 0.62))
+    cols = (n + 1) // 2
+    ratio = hr.shape[0] / hr.shape[1]
+    fig, axes = plt.subplots(2, cols,
+                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.15))
+    axes = axes.ravel()
+    for ax in axes[n:]:
+        ax.axis('off')
     for ax, (img, lbl) in zip(axes, panels):
         ax.imshow(img)
+        ax.add_patch(Rectangle((x0, y0), cw, ch, fill=False,
+                               edgecolor=ROI_COLOR, linewidth=1.2))
         ax.set_title(lbl, fontsize=7)
         ax.axis('off')
     fig.tight_layout(pad=0.3)
@@ -83,31 +111,32 @@ def comparison_strip(name: str, active, out_path: Path):
 
 
 def zoom_strip(name: str, active, out_path: Path):
-    import numpy as np
+    """2-row grid with the marked region enlarged; fine-tuned panel highlighted."""
     import matplotlib.pyplot as plt
-    from PIL import Image
+    from matplotlib.patches import Rectangle
 
-    hr = load_rgb(FRAMES_HR_DIR / name)
-    lr = load_rgb(FRAMES_LR_DIR / name)
-    lr_up = np.array(Image.fromarray(lr).resize(
-        (lr.shape[1] * SCALE_FACTOR, lr.shape[0] * SCALE_FACTOR), Image.NEAREST))
-
-    panels = [(lr_up, 'Entrada LR (NN)')]
-    panels += [(load_rgb(d / name), lbl) for _, lbl, d in active]
-    panels.append((hr, 'Referencia HR'))
-
-    # Central crop, one quarter of the frame, same region in every panel
-    h, w = hr.shape[:2]
-    ch, cw = h // 4, w // 4
-    y0, x0 = (h - ch) // 2, (w - cw) // 2
+    panels, hr = _build_panels(name, active)
+    y0, x0, ch, cw = _roi(hr.shape)
 
     n = len(panels)
-    fig, axes = plt.subplots(1, n, figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / n * 0.85))
+    cols = (n + 1) // 2
+    ratio = ch / cw
+    fig, axes = plt.subplots(2, cols,
+                             figsize=(FIG_DOUBLE_W, FIG_DOUBLE_W / cols * ratio * 2.3))
+    axes = axes.ravel()
+    for ax in axes[n:]:
+        ax.axis('off')
     for ax, (img, lbl) in zip(axes, panels):
         ih, iw = img.shape[:2]
         yy, xx = min(y0, max(ih - ch, 0)), min(x0, max(iw - cw, 0))
         ax.imshow(img[yy:yy + ch, xx:xx + cw])
-        ax.set_title(lbl, fontsize=7)
+        if lbl == HIGHLIGHT_LABEL:
+            ax.set_title(lbl, fontsize=7, color=ROI_COLOR, fontweight='bold')
+            ax.add_patch(Rectangle((0, 0), 1, 1, transform=ax.transAxes,
+                                   fill=False, edgecolor=ROI_COLOR,
+                                   linewidth=2, clip_on=False))
+        else:
+            ax.set_title(lbl, fontsize=7)
         ax.axis('off')
     fig.tight_layout(pad=0.3)
     fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
@@ -115,34 +144,62 @@ def zoom_strip(name: str, active, out_path: Path):
     print(f'  Saved: {out_path.name}')
 
 
+METHOD_COLORS = ['#4C72B0', '#DD8452', '#55A868', '#C44E52']
+COND_LABELS   = {'day': 'Día', 'night': 'Noche', 'indoor': 'Interior',
+                 'unspecified': 'Sin clasificar'}
+
+
 def metrics_bar_chart(summary: dict, active, out_path: Path):
     import numpy as np
     import matplotlib.pyplot as plt
 
     conditions = sorted(summary['by_condition'].keys())
-    metric = 'lpips'
-    if not any(f'lpips_{k}' in summary['overall'] for k, _, _ in active):
-        metric = 'psnr'
-
     keys   = [k for k, _, _ in active]
     labels = [lbl for _, lbl, _ in active]
+
+    metrics = [('psnr', 'PSNR (dB)\nmayor es mejor'),
+               ('ssim', 'SSIM\nmayor es mejor'),
+               ('lpips', 'LPIPS\nmenor es mejor')]
+    metrics = [(m, t) for m, t in metrics
+               if any(f'{m}_{k}' in summary['overall'] for k in keys)]
+
     x = np.arange(len(conditions))
     width = 0.8 / len(keys)
 
-    fig, ax = plt.subplots(figsize=(FIG_DOUBLE_W, 2.8))
-    for i, (key, lbl) in enumerate(zip(keys, labels)):
-        vals = [summary['by_condition'][c].get(f'{metric}_{key}', float('nan'))
-                for c in conditions]
-        ax.bar(x + i * width - 0.4 + width / 2, vals, width, label=lbl)
+    fig, axes = plt.subplots(1, len(metrics),
+                             figsize=(FIG_DOUBLE_W, 2.6))
+    if len(metrics) == 1:
+        axes = [axes]
 
-    ylabel = 'LPIPS (menor es mejor)' if metric == 'lpips' else 'PSNR (dB, mayor es mejor)'
-    ax.set_ylabel(ylabel, fontsize=8)
-    ax.set_xticks(x)
-    ax.set_xticklabels(conditions, fontsize=8)
-    ax.tick_params(axis='y', labelsize=7)
-    ax.legend(fontsize=7, frameon=False)
-    ax.spines[['top', 'right']].set_visible(False)
-    fig.tight_layout()
+    for ax, (metric, title) in zip(axes, metrics):
+        for i, key in enumerate(keys):
+            vals = [summary['by_condition'][c].get(f'{metric}_{key}', float('nan'))
+                    for c in conditions]
+            pos = x + i * width - 0.4 + width / 2
+            bars = ax.bar(pos, vals, width * 0.92,
+                          color=METHOD_COLORS[i % len(METHOD_COLORS)],
+                          edgecolor='black', linewidth=0.4)
+            fmt = '{:.1f}' if metric == 'psnr' else '{:.2f}'
+            for b, v in zip(bars, vals):
+                if v == v:
+                    ax.text(b.get_x() + b.get_width() / 2, v, fmt.format(v),
+                            ha='center', va='bottom', fontsize=5.5)
+        ax.set_title(title, fontsize=8)
+        ax.set_xticks(x)
+        ax.set_xticklabels([COND_LABELS.get(c, c) for c in conditions], fontsize=8)
+        ax.tick_params(axis='y', labelsize=7)
+        ax.margins(y=0.15)
+        ax.grid(axis='y', alpha=0.3, linewidth=0.5)
+        ax.set_axisbelow(True)
+        ax.spines[['top', 'right']].set_visible(False)
+
+    from matplotlib.patches import Patch
+    handles = [Patch(facecolor=METHOD_COLORS[i % len(METHOD_COLORS)],
+                     edgecolor='black', linewidth=0.4)
+               for i in range(len(labels))]
+    fig.legend(handles, labels, loc='upper center', ncol=len(labels),
+               fontsize=7.5, frameon=False, bbox_to_anchor=(0.5, 1.06))
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
     plt.close(fig)
     print(f'  Saved: {out_path.name}')
@@ -171,15 +228,22 @@ def training_curve(out_path: Path):
         print('  No loss entries found in the training log; loss curve skipped.')
         return
 
-    fig, ax = plt.subplots(figsize=(FIG_DOUBLE_W * 0.6, 2.6))
-    ax.plot(iters, l_pix, linewidth=1, label='Pérdida L1 (píxel)')
-    ax.plot(iters, l_percep, linewidth=1, label='Pérdida perceptual (VGG)')
-    ax.set_xlabel('Iteración', fontsize=8)
-    ax.set_ylabel('Pérdida', fontsize=8)
-    ax.set_yscale('log')
-    ax.tick_params(labelsize=7)
-    ax.legend(fontsize=7, frameon=False)
-    ax.spines[['top', 'right']].set_visible(False)
+    import pandas as pd
+
+    fig, axes = plt.subplots(1, 2, figsize=(FIG_DOUBLE_W, 2.6))
+    series = [(l_pix, 'Pérdida L1 (píxel)', '#4C72B0'),
+              (l_percep, 'Pérdida perceptual (VGG)', '#DD8452')]
+    for ax, (vals, title, color) in zip(axes, series):
+        smooth = pd.Series(vals).ewm(alpha=0.08).mean()
+        ax.plot(iters, vals, linewidth=0.6, color=color, alpha=0.25)
+        ax.plot(iters, smooth, linewidth=1.4, color=color)
+        ax.set_title(title, fontsize=8)
+        ax.set_xlabel('Iteración', fontsize=8)
+        ax.set_ylabel('Pérdida', fontsize=8)
+        ax.tick_params(labelsize=7)
+        ax.grid(alpha=0.3, linewidth=0.5)
+        ax.set_axisbelow(True)
+        ax.spines[['top', 'right']].set_visible(False)
     fig.tight_layout()
     fig.savefig(out_path, dpi=FIG_DPI, bbox_inches='tight')
     plt.close(fig)

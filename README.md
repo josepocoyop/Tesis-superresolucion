@@ -209,26 +209,49 @@ Notas:
 
 ## Primeros resultados (julio 2026)
 
-El pipeline completo (steps 1 a 8) ya se ejecutó en la máquina local con el video `day_street.mp4` (cámara de seguridad real, 848x480, 15 fps). Se usaron 60 fotogramas y el fine-tuning tomó 51 minutos para las 5000 iteraciones.
+El pipeline completo (steps 1 a 8) se ejecutó en la máquina local con tres videos reales de cámaras de seguridad:
+
+| Video | Condición | Resolución | fps |
+|---|---|---|---|
+| `day_street.mp4` | Día (calle) | 848x480 | 15 |
+| `indoor_garaje.mp4` | Interior (garaje) | 640x360 | 20 |
+| `indoor_tienda.mp4` | Interior (tienda) | 640x360 | 12 |
+
+Cada video conserva su resolución nativa (step2 ya no fuerza un solo tamaño). Se usaron 60 fotogramas por video, 180 en total, y el fine-tuning con los tres videos tomó 31 minutos para las 5000 iteraciones.
+
+Promedios sobre los 180 fotogramas:
 
 | Método | PSNR (dB) ↑ | SSIM ↑ | LPIPS ↓ |
 |---|---|---|---|
-| Bicúbica ×4 (referencia) | 20.43 | 0.5134 | 0.7140 |
-| ESRGAN ×4 (preentrenado) | 18.84 | 0.5197 | 0.3111 |
-| SwinIR ×4 (Transformer) | 18.79 | 0.5172 | 0.3332 |
-| **ESRGAN ×4 (fine-tuned)** | **20.77** | **0.6430** | **0.1380** |
+| Bicúbica ×4 (referencia) | 18.83 | 0.5274 | 0.6860 |
+| ESRGAN ×4 (preentrenado) | 18.28 | 0.5911 | 0.3004 |
+| SwinIR ×4 (Transformer) | 18.41 | 0.6106 | 0.2871 |
+| **ESRGAN ×4 (fine-tuned)** | **19.67** | **0.7135** | **0.1265** |
+
+Por condición:
+
+| Método | PSNR día | SSIM día | LPIPS día | PSNR interior | SSIM interior | LPIPS interior |
+|---|---|---|---|---|---|---|
+| Bicúbica ×4 | 20.42 | 0.5133 | 0.7140 | 18.03 | 0.5345 | 0.6721 |
+| ESRGAN ×4 | 18.84 | 0.5197 | 0.3112 | 18.00 | 0.6268 | 0.2949 |
+| SwinIR ×4 | 18.79 | 0.5168 | 0.3329 | 18.22 | 0.6575 | 0.2642 |
+| **ESRGAN ×4 (fine-tuned)** | 20.06 | **0.6045** | **0.1694** | **19.48** | **0.7680** | **0.1050** |
 
 Lo que muestran estos números:
 
-- El **modelo afinado con nuestros propios datos ganó en las tres métricas**. Es la evidencia principal del objetivo 3: entrenar sí mejoró el modelo.
+- El **modelo afinado ganó en las tres métricas globales** y en SSIM y LPIPS en las dos condiciones. Es la evidencia principal del objetivo 3.
+- En PSNR de día el afinado queda 0.4 dB por debajo del bicúbico (20.06 vs 20.42), aunque sigue muy por encima de los otros dos modelos. Hay que reportarlo tal cual.
 - ESRGAN y SwinIR preentrenados tienen PSNR menor que el bicúbico pero LPIPS mucho mejor. Es el comportamiento esperado (percepción vs distorsión) y así hay que explicarlo en el capítulo de resultados.
-- La tabla por condición todavía tiene una sola condición (día). Con los videos de noche e interior se completa.
+- En interior, SwinIR supera levemente al ESRGAN preentrenado; en día es al revés. Sirve para la discusión de la comparación entre arquitecturas.
+- Falta la condición de noche (`night_*.mp4`) para completar la comparación.
 
-Comparación visual (recorte central del fotograma, cada método):
+Comparación visual en interior (región ampliada, cada método):
 
-![Comparación con acercamiento](output/thesis_figures/thesis_fig_zoom_day.png)
+![Comparación con acercamiento](output/thesis_figures/thesis_fig_zoom_indoor.png)
 
-Curva de pérdidas del fine-tuning:
+Métricas por condición y curvas de pérdida del fine-tuning:
+
+![Métricas por condición](output/thesis_figures/thesis_fig_metrics_by_condition.png)
 
 ![Curva de entrenamiento](output/thesis_figures/thesis_fig_training_loss.png)
 

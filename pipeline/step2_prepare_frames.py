@@ -46,7 +46,7 @@ def clear_dir(d: Path):
 
 
 def extract_frames(video_path: Path, out_dir: Path,
-                   num_frames: int, target_wh: tuple) -> list:
+                   num_frames: int, target_wh) -> list:
     import cv2
     import numpy as np
 
@@ -60,14 +60,18 @@ def extract_frames(video_path: Path, out_dir: Path,
         int(i * (total - 1) / (num_frames - 1)) for i in range(num_frames)
     ))
 
-    tw, th = target_wh
-    saved  = []
+    saved = []
     for idx in indices:
         cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ok, frame = cap.read()
         if not ok:
             continue
-        frame = cv2.resize(frame, (tw, th), interpolation=cv2.INTER_LANCZOS4)
+        if target_wh is not None:
+            frame = cv2.resize(frame, target_wh, interpolation=cv2.INTER_LANCZOS4)
+        else:
+            # native resolution, cropped to a multiple of the scale factor
+            h, w = frame.shape[:2]
+            frame = frame[:h - h % SCALE_FACTOR, :w - w % SCALE_FACTOR]
         name  = f'{video_path.stem}_f{idx:06d}.png'
         dest  = out_dir / name
         cv2.imwrite(str(dest), frame)
@@ -109,22 +113,25 @@ def bicubic_up(lr_bgr):
 
 def main():
     parser = argparse.ArgumentParser(description='Step 2: Frame extraction and degradation')
-    parser.add_argument('--target-size', nargs=2, type=int, default=[1280, 720],
+    parser.add_argument('--target-size', nargs=2, type=int, default=None,
                         metavar=('W', 'H'),
-                        help='HR frame size in pixels (default: 1280 720)')
+                        help='force HR frame size (default: native size per video)')
     args = parser.parse_args()
 
     install_deps()
     import cv2
     from tqdm import tqdm
 
-    target_wh = tuple(args.target_size)
+    target_wh = tuple(args.target_size) if args.target_size else None
 
     print('=' * 60)
     print('STEP 2 — Frame extraction and synthetic degradation')
     print('=' * 60)
-    print(f'  HR resolution : {target_wh[0]}x{target_wh[1]}')
-    print(f'  LR resolution : {target_wh[0]//SCALE_FACTOR}x{target_wh[1]//SCALE_FACTOR}')
+    if target_wh:
+        print(f'  HR resolution : {target_wh[0]}x{target_wh[1]}')
+        print(f'  LR resolution : {target_wh[0]//SCALE_FACTOR}x{target_wh[1]//SCALE_FACTOR}')
+    else:
+        print(f'  HR resolution : native per video (LR = HR / {SCALE_FACTOR})')
     print(f'  Degradation   : blur s={BLUR_SIGMA}, JPEG q={JPEG_QUALITY}, noise s={NOISE_SIGMA}')
     print()
 
