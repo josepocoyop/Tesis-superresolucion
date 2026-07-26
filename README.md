@@ -176,6 +176,15 @@ flowchart TD
 | `step7_compute_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime las tablas LaTeX de la tesis | Obj. 4 |
 | `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición, gráfica de métricas, curva de pérdidas del entrenamiento y figura de interpolación RIFE, a 300 DPI | Obj. 3 y 4 |
 
+Aparte, en `figuras_tesis/` están los scripts que producen material específico del documento de tesis:
+
+| Archivo | Qué hace |
+|---|---|
+| `fig_degradation.py` | Figura del protocolo de degradación sintética (original vs degradado, con detalles) |
+| `fig03_gan.tex`, `fig07_ajuste_fino.tex` | Diagramas de bloques en TikZ. Se compilan con `pdflatex` y se convierten con `pdftoppm -png -r 300 -singlefile` |
+| `measure_inference_time.py` | Cronometra bicúbico, ESRGAN preentrenado, ESRGAN afinado, SwinIR y RIFE sobre los mismos fotogramas |
+| `table_per_video_metrics.py` | Desglosa las métricas por video con media y desviación estándar, e imprime las tablas LaTeX |
+
 > [!WARNING]
 > Los scripts y métricas que se usaron para el artículo de ColCom están guardados en `ColCom Paper/reproducibility/`. Esa carpeta no se modifica, para poder reproducir el artículo tal como se envió. Todo el trabajo de la tesis va en `pipeline/`.
 
@@ -237,12 +246,35 @@ Por condición:
 | SwinIR ×4 | 18.79 | 0.5168 | 0.3329 | 18.22 | 0.6575 | 0.2642 |
 | **ESRGAN ×4 (fine-tuned)** | 20.06 | **0.6045** | **0.1694** | **19.48** | **0.7680** | **0.1050** |
 
+Por video (PSNR en dB, media ± desviación estándar; las tablas completas de SSIM y LPIPS están en `output/metrics/per_video_metrics.csv`):
+
+| Método | day_street | indoor_garaje | indoor_tienda |
+|---|---|---|---|
+| Bicúbica ×4 | 20.425 ± 0.254 | 18.187 ± 0.019 | 17.869 ± 0.093 |
+| ESRGAN ×4 | 18.838 ± 0.196 | 18.220 ± 0.044 | 17.789 ± 0.105 |
+| SwinIR ×4 | 18.787 ± 0.191 | 18.740 ± 0.065 | 17.700 ± 0.106 |
+| **ESRGAN ×4 (fine-tuned)** | 20.062 ± 0.178 | **20.654 ± 0.083** | **18.299 ± 0.094** |
+
+Tiempos por fotograma (RTX 4070 Ti, entrada de 212x120 a 848x480, 20 fotogramas cronometrados con calentamiento previo, `figuras_tesis/measure_inference_time.py`):
+
+| Método | ms/fotograma | fps |
+|---|---|---|
+| Bicúbica (CPU) | 0.6 | 1608 |
+| ESRGAN ×4 (preentrenado) | 45.7 | 21.9 |
+| SwinIR ×4 | 149.3 | 6.7 |
+| ESRGAN ×4 (fine-tuned) | 45.0 | 22.2 |
+| RIFE (por fotograma interpolado, 848x480) | 13.4 | 74.6 |
+| **Pipeline completo por fotograma de entrada** | **51.7** | **19.4** |
+
 Lo que muestran estos números:
 
 - El **modelo afinado ganó en las tres métricas globales** y en SSIM y LPIPS en las dos condiciones. Es la evidencia principal del objetivo 3.
 - En PSNR de día el afinado queda 0.4 dB por debajo del bicúbico (20.06 vs 20.42), aunque sigue muy por encima de los otros dos modelos. Hay que reportarlo tal cual.
 - ESRGAN y SwinIR preentrenados tienen PSNR menor que el bicúbico pero LPIPS mucho mejor. Es el comportamiento esperado (percepción vs distorsión) y así hay que explicarlo en el capítulo de resultados.
 - En interior, SwinIR supera levemente al ESRGAN preentrenado; en día es al revés. Sirve para la discusión de la comparación entre arquitecturas.
+- El desglose por video muestra que las dos escenas de interior no se comportan igual: en el garaje el afinado le saca 2.47 dB al bicúbico, en la tienda solo 0.43 dB. La tienda tiene más movimiento y más compresión.
+- Las desviaciones estándar son bajas (máximo 0.26 dB en PSNR), o sea que el resultado no depende del fotograma elegido.
+- SwinIR cuesta 3.3 veces más tiempo que ESRGAN y no gana en calidad. Es un argumento a favor de la arquitectura elegida.
 - Falta la condición de noche (`night_*.mp4`) para completar la comparación.
 
 Comparación visual en interior (región ampliada, cada método):
