@@ -98,10 +98,7 @@ def degrade(hr_bgr):
     lr_jpg = cv2.imdecode(enc, cv2.IMREAD_COLOR)
 
     noise = np.random.normal(0, NOISE_SIGMA, lr_jpg.shape).astype(np.float32)
-    lr_noisy = np.clip(lr_jpg.astype(np.float32) + noise, 0, 255).astype(
-        __import__('numpy').uint8
-    )
-    return lr_noisy
+    return np.clip(lr_jpg.astype(np.float32) + noise, 0, 255).astype(np.uint8)
 
 
 def bicubic_up(lr_bgr):

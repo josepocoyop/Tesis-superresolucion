@@ -10,7 +10,14 @@
     480
   ],
   "esrgan_weights": "RealESRGAN_x4plus_finetuned.pth",
-  "esrgan_ms_per_frame": 43.8,
-  "rife_ms_per_frame": 13.5,
-  "pipeline_ms_per_input_frame": 50.5
+  "ms_per_frame": {
+    "bicubic": 0.6,
+    "esrgan_pretrained": 45.7,
+    "esrgan_finetuned": 45.0,
+    "swinir": 149.3,
+    "rife": 13.4
+  },
+  "pipeline_ms_per_input_frame": 51.7,
+  "esrgan_ms_per_frame": 45.0,
+  "rife_ms_per_frame": 13.4
 }
