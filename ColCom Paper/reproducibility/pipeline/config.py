@@ -14,8 +14,9 @@ if IS_COLAB:
     #   # Then upload your weights/ and dataset/ folders, or mount Drive.
     BASE_DIR = Path('/content/jose')
 else:
-    # Local Windows: two levels up from pipeline/
-    BASE_DIR = Path(__file__).resolve().parent.parent
+    # Local: raiz del proyecto, tres niveles por encima de pipeline/
+    # (pipeline -> reproducibility -> ColCom Paper -> raiz)
+    BASE_DIR = Path(__file__).resolve().parents[3]
 
 # ---------------------------------------------------------------------------
 # Directory layout  (mirrors the Jose/ folder structure)

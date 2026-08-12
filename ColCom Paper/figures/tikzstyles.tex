@@ -1,0 +1,40 @@
+% Estilos compartidos por los diagramas de las Figs. 1 a 3.
+\usetikzlibrary{positioning, arrows.meta, calc, fit, backgrounds}
+
+\tikzset{
+  diagram/.style={
+    font=\scriptsize,
+    >={Stealth[length=1.4mm, width=1.0mm]},
+    line width=0.4pt,
+    node distance=3mm,
+  },
+  block/.style={
+    draw=black!65, fill=blue!8, rounded corners=1.2pt,
+    align=center, inner sep=2pt, minimum height=9mm,
+  },
+  auxblock/.style={block, fill=black!6},
+  lossblock/.style={block, fill=orange!14, minimum height=6mm},
+  note/.style={align=center, font=\tiny, text=black!65, inner sep=1pt},
+  flow/.style={->, draw=black!75},
+  aux/.style={->, draw=black!55, densely dashed},
+  % pila de fotogramas, ancho 0.95 y alto 0.62
+  framestack/.pic={
+    \draw[fill=white, draw=black!65, line width=0.4pt] (0.10,0.10) rectangle +(0.95,0.62);
+    \draw[fill=white, draw=black!65, line width=0.4pt] (0.05,0.05) rectangle +(0.95,0.62);
+    \draw[fill=white, draw=black!65, line width=0.4pt] (0.00,0.00) rectangle +(0.95,0.62);
+    \coordinate (-east)   at (1.05,0.41);
+    \coordinate (-west)   at (0.00,0.31);
+    \coordinate (-south)  at (0.50,0.00);
+    \coordinate (-north)  at (0.55,0.72);
+    \coordinate (-centre) at (0.52,0.36);
+  },
+  % fotograma suelto, ancho 0.95 y alto 0.62
+  singleframe/.pic={
+    \draw[fill=white, draw=black!65, line width=0.4pt] (0,0) rectangle +(0.95,0.62);
+    \coordinate (-east)   at (0.95,0.31);
+    \coordinate (-west)   at (0.00,0.31);
+    \coordinate (-south)  at (0.475,0.00);
+    \coordinate (-north)  at (0.475,0.62);
+    \coordinate (-centre) at (0.475,0.31);
+  },
+}

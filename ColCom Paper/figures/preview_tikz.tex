@@ -1,0 +1,30 @@
+% Banco de pruebas: muestra las Figs. 1 a 3 al ancho real de columna de IEEEtran.
+% Compilar con: pdflatex preview_tikz.tex
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tikz}
+\input{tikzstyles}
+
+\begin{document}
+
+\noindent\rule{\columnwidth}{0.4pt}\\
+\input{fig1_pipeline}\\
+\rule{\columnwidth}{0.4pt}
+
+\vspace{6mm}
+
+\noindent\rule{\columnwidth}{0.4pt}\\
+\input{fig2_esrgan}\\
+\rule{\columnwidth}{0.4pt}
+
+\vspace{6mm}
+
+\noindent\rule{\columnwidth}{0.4pt}\\
+\input{fig3_rife}\\
+\rule{\columnwidth}{0.4pt}
+
+\end{document}

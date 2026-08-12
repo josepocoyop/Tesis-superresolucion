@@ -1,0 +1,55 @@
+% Fig. 2: arquitectura de ESRGAN.
+\begin{tikzpicture}[diagram]
+
+  % generador, la unica parte que se ejecuta en inferencia
+  \pic (lr) at (0,1.7) {framestack};
+  \node[note, left=0.6mm of lr-west] {LR};
+
+  \node[block, minimum width=8mm, right=2.2mm of lr-east, anchor=west] (c1) {Conv};
+  \node[block, minimum width=12mm, right=3mm of c1] (rrdb) {RRDB\\$\times 23$};
+  \node[block, minimum width=14mm, right=5mm of rrdb] (up) {Muestreo\\ascendente $\times4$};
+  \node[block, minimum width=8mm, right=3mm of up] (c2) {Conv};
+
+  % conexion residual global alrededor del tronco de bloques RRDB
+  \node[draw=black!65, circle, inner sep=0.5pt, fill=white, font=\tiny]
+    (sum) at ($(rrdb.east)!0.5!(up.west)$) {$+$};
+  \draw[flow] (c1.north) .. controls +(0,0.45) and +(0,0.45) .. (sum.north);
+
+  \pic (sr) at ($(c2.east)+(0.3,-0.36)$) {framestack};
+  \node[note, above=0.6mm of sr-north] {SR};
+
+  \draw[flow] (lr-east) -- (c1.west);
+  \draw[flow] (c1) -- (rrdb);
+  \draw[flow] (rrdb.east) -- (sum.west);
+  \draw[flow] (sum.east) -- (up.west);
+  \draw[flow] (up) -- (c2);
+  \draw[flow] (c2.east) -- (sr-west);
+
+  \begin{scope}[on background layer]
+    \node[draw=black!45, densely dashed, rounded corners=1.5pt,
+          inner xsep=2mm, inner ysep=3.2mm, fit=(lr-west)(c1)(c2)(sr-east)] (gen) {};
+  \end{scope}
+  \node[note, anchor=north west] at ($(gen.north west)+(1mm,-0.4mm)$) {Generador};
+
+  % perdidas, solo intervienen durante el entrenamiento
+  \pic (hr) at (0,0) {framestack};
+  \node[note, below=0.8mm of hr-south] {Referencia\\HR};
+
+  \node[lossblock, minimum width=17mm] (l1) at (3.05,0.36)
+    {$\mathcal{L}_1$\\píxel};
+  \node[lossblock, minimum width=17mm, right=2mm of l1] (lp)
+    {$\mathcal{L}_{\mathrm{perc}}$\\VGG};
+  \node[lossblock, minimum width=22mm, right=2mm of lp] (la)
+    {$\mathcal{L}_{\mathrm{adv}}$\\disc.\ relativista};
+
+  \begin{scope}[on background layer]
+    \node[draw=black!45, densely dashed, rounded corners=1.5pt,
+          inner xsep=1.6mm, inner ysep=1.6mm, fit=(l1)(la)] (losses) {};
+  \end{scope}
+  \node[note, anchor=north east] at ($(losses.south east)+(0,-0.6mm)$)
+    {Solo durante el entrenamiento};
+
+  \draw[flow] (hr-east) -- (losses.west);
+  \draw[flow] (sr-south) -- (la.north);
+
+\end{tikzpicture}

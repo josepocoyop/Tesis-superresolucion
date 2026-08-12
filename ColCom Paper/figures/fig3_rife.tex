@@ -1,0 +1,33 @@
+% Fig. 3: arquitectura de RIFE.
+\begin{tikzpicture}[diagram]
+
+  \pic (ia) at (0,1.55) {singleframe};
+  \node[note, above=0.6mm of ia-north] {$I_t$};
+  \pic (ib) at (0,0.55) {singleframe};
+  \node[note, below=0.6mm of ib-south] {$I_{t+1}$};
+
+  \node[block, minimum width=17mm, minimum height=12mm] (ifnet) at (2.55,1.28)
+    {\textbf{IFNet}\\estimación\\multiescala};
+
+  \node[auxblock, minimum width=22mm, minimum height=8mm] (flow) at (5.5,1.28)
+    {Flujo intermedio\\$F_{t\rightarrow t+0.5}$};
+
+  \draw[flow] (ia-east) -- (ifnet.west);
+  \draw[flow] (ib-east) -- (ifnet.west);
+  \draw[flow] (ifnet) -- (flow);
+
+  \node[block, minimum width=16mm] (warp) at (1.6,-0.55)
+    {Deformación\\(\textit{warping})};
+  \node[block, minimum width=21mm] (fuse) at (4.5,-0.55)
+    {Fusión y\\refinamiento};
+  \pic (out) at (6.5,-0.86) {singleframe};
+  \node[note, below=0.8mm of out-south] {$I_{t+0.5}$};
+
+  \draw[flow] (flow.south) -- ++(0,-0.42) -| (warp.north);
+  \draw[flow] (warp) -- (fuse);
+  \draw[flow] (fuse.east) -- (out-west);
+
+  \draw[aux] (ia-west) -- ++(-0.32,0) |- (warp.west);
+  \draw[aux] (ib-west) -- ++(-0.32,0) |- (warp.west);
+
+\end{tikzpicture}
