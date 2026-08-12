@@ -2,6 +2,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
+% punto decimal tambien en modo matematico, para no mezclarlo con el del texto
+\decimalpoint
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -52,7 +54,7 @@
 \maketitle
 
 \begin{abstract}
-Conventional video surveillance cameras often capture sequences with low spatial resolution and reduced frame rates, which hinders scene analysis and forensic tasks. This paper evaluates a deep learning pipeline for the spatial and temporal enhancement of surveillance video that combines two existing pretrained models: ESRGAN for spatial super-resolution and RIFE for temporal frame interpolation. The contribution is the integration of both stages and its evaluation on CCTV footage under a reproducible degradation protocol, rather than a new architecture. Footage recorded with a commercial fixed surveillance camera at $848\times480$ pixels and 15~fps was degraded to $212\times120$ pixels following the standard Real-ESRGAN synthetic protocol. The pipeline is evaluated using PSNR, SSIM, and LPIPS, a learned perceptual image quality metric, benchmarked against bicubic upscaling. ESRGAN reaches an LPIPS of 0.311 against 0.714 for bicubic upscaling, while its PSNR is 1.58~dB lower, a behaviour consistent with the perception-distortion tradeoff. RIFE doubles the output frame rate from 15 to 30~fps, and its synthesized frames reach 37.12~dB in a hold-out test against 33.95~dB for frame averaging. The complete pipeline runs at 52.5~ms per input frame and 360~MB of GPU memory on a desktop card, which keeps it applicable to existing surveillance installations without replacing hardware.
+Conventional video surveillance cameras often capture sequences with low spatial resolution and reduced frame rates, which hinders scene analysis and forensic tasks. This paper evaluates a deep learning pipeline for the spatial and temporal enhancement of surveillance video that combines two existing pretrained models: ESRGAN for spatial super-resolution and RIFE for temporal frame interpolation. The contribution is the integration of both stages and its evaluation on CCTV footage under a reproducible degradation protocol, rather than a new architecture. Footage recorded with a commercial fixed surveillance camera at $848\times480$ pixels and 15~fps was degraded to $212\times120$ pixels following the standard Real-ESRGAN synthetic protocol. The pipeline is evaluated using PSNR, SSIM, and LPIPS, a learned perceptual image quality metric, benchmarked against bicubic upscaling. ESRGAN reaches an LPIPS of 0.311 against 0.714 for bicubic upscaling, while its PSNR is lower, 18.84~dB against 20.42~dB, a behaviour consistent with the perception-distortion tradeoff. RIFE doubles the output frame rate from 15 to 30~fps, and its synthesized frames reach 37.12~dB in a hold-out test against 33.95~dB for frame averaging. The complete pipeline runs at 52.5~ms per input frame and 360~MB of GPU memory on a desktop card, which keeps it applicable to existing surveillance installations without replacing hardware.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -91,13 +93,14 @@ La estimación del flujo óptico mediante redes profundas, introducida con FlowN
 
 \subsection{Posicionamiento del presente trabajo}
 
-A pesar del progreso individual en SR espacial e interpolación temporal, la mayoría de los métodos abordan una sola dimensión de mejora. Los sistemas CCTV presentan simultáneamente deficiencias en resolución y en tasa de fotogramas~\cite{li2011people}, por lo que mejorar solo una de estas dimensiones deja sin resolver una parte sustancial del problema. El presente trabajo integra ESRGAN~\cite{wang2018esrgan} y RIFE~\cite{huang2022rife} en un pipeline secuencial orientado específicamente a las restricciones reales de los sistemas de videovigilancia de bajo costo, contribuyendo con una solución práctica y evaluable para este dominio de aplicación.
+A pesar del progreso individual en SR espacial e interpolación temporal, la mayoría de los métodos abordan una sola dimensión de mejora. Los sistemas CCTV de bajo costo presentan simultáneamente deficiencias en resolución y en tasa de fotogramas, por lo que mejorar solo una de estas dimensiones deja sin resolver una parte sustancial del problema. El presente trabajo integra ESRGAN~\cite{wang2018esrgan} y RIFE~\cite{huang2022rife} en un flujo secuencial orientado a las restricciones reales de estos sistemas, y lo caracteriza tanto en calidad de imagen como en costo de cómputo.
 
 \section{Metodología}
 
 Se diseñó un flujo de trabajo secuencial que procesa cada secuencia de video degradada a través de cuatro etapas aplicadas a nivel de fotograma individual. La combinación de mejora espacial y síntesis temporal permite recuperar simultáneamente la resolución y la fluidez del video de entrada.
 
 \subsection{Adquisición y Preparación del Conjunto de Datos}
+\label{sec:dataset}
 
 La evaluación se realizó sobre una grabación propia, capturada con una cámara de vigilancia comercial EZVIZ instalada en posición fija sobre una vía urbana, en horario diurno, a 15~fps y con resolución nativa de $848\times480$~píxeles. Esta grabación cumple la función de referencia de alta resolución (HR).
 
@@ -126,7 +129,7 @@ El procesamiento de cada secuencia sigue cuatro etapas secuenciales, ilustradas 
 
 \subsection{Entorno de Implementación}
 
-El pipeline se implementó en Python~3.11 sobre una GPU NVIDIA RTX~4070~Ti (12~GB VRAM, CUDA~12). Las librerías principales empleadas son \textit{realesrgan}~0.3 para la inferencia de ESRGAN y el repositorio oficial ECCV2022-RIFE~\cite{huang2022rife} para la interpolación temporal.
+El flujo se implementó en Python~3.11 sobre una GPU NVIDIA RTX~4070~Ti (12~GB VRAM, CUDA~12.4). Las librerías principales empleadas son \textit{realesrgan}~0.3 para la inferencia de ESRGAN y el repositorio oficial ECCV2022-RIFE~\cite{huang2022rife} para la interpolación temporal.
 
 \subsection{Modelos de Inteligencia Artificial Empleados}
 
@@ -154,7 +157,7 @@ RIFE (\textit{Real-time Intermediate Flow Estimation})~\cite{huang2022rife} es u
 
 \section{Resultados Experimentales}
 
-Se evaluó el rendimiento del pipeline propuesto sobre los fragmentos de video de vigilancia recopilados, cubriendo dos dimensiones: una evaluación cualitativa centrada en la reconstrucción visual y la fluidez del movimiento, y una evaluación cuantitativa mediante métricas objetivas de calidad de imagen.
+El flujo propuesto se evaluó sobre la grabación descrita en la Sección~\ref{sec:dataset} en tres frentes: la reconstrucción visual, la calidad de los fotogramas que aporta la interpolación temporal, y las métricas objetivas frente al escalado bicúbico.
 
 \subsection{Evaluación Cualitativa}
 
@@ -167,7 +170,7 @@ La Fig.~\ref{fig:comparison} presenta cuatro versiones del mismo fotograma: la e
     }{%
         \rule{\textwidth}{0.4pt}\\[3cm]\rule{\textwidth}{0.4pt}%
     }
-    \caption{Comparación de métodos sobre un fotograma representativo: entrada LR ($212\times120$, escalada por vecino más próximo), reconstrucción bicúbica $\times4$, salida de ESRGAN $\times4$ (propuesto) y referencia HR ($848\times480$). Los valores de PSNR, SSIM y LPIPS se indican sobre cada método.}
+    \caption{Comparación de métodos sobre un fotograma representativo: entrada LR ($212\times120$, escalada por vecino más próximo), reconstrucción bicúbica $\times4$, salida de ESRGAN $\times4$ (propuesto) y referencia HR ($848\times480$). Los valores de PSNR, SSIM y LPIPS se indican sobre los dos métodos comparados; la entrada y la referencia no los llevan.}
     \label{fig:comparison}
 \end{figure*}
 
@@ -226,7 +229,7 @@ El SSIM evalúa la similitud estructural entre imágenes considerando luminosida
 
 \noindent donde $\mu$ denota la media, $\sigma_{xy}$ la covarianza, y $c_1$, $c_2$ constantes de estabilización.
 
-La Tabla~\ref{tab:metrics} resume los resultados promedio sobre los 60~fotogramas de evaluación, junto con el costo computacional de cada método. Las tres métricas espaciales se calculan siempre sobre los fotogramas presentes en la secuencia original, que son los únicos que tienen referencia HR; por eso ESRGAN y el flujo completo comparten esos valores y se diferencian en la tasa de salida y en el tiempo de procesamiento. La calidad de los fotogramas añadidos por RIFE se reporta por separado en la Sección~\ref{sec:temporal}.
+La Tabla~\ref{tab:metrics} resume los resultados promedio sobre los 60~fotogramas de evaluación, junto con el costo computacional de cada método. La columna de fps de salida es la tasa del video resultante, distinta de la velocidad de procesamiento que recoge la última columna. Las tres métricas espaciales se calculan siempre sobre los fotogramas presentes en la secuencia original, que son los únicos que tienen referencia HR; por eso ESRGAN y el flujo completo comparten esos valores y se diferencian en la tasa de salida y en el tiempo de procesamiento. La calidad de los fotogramas añadidos por RIFE se reporta por separado en la Sección~\ref{sec:temporal}.
 
 \begin{table}[t]
     \caption{Calidad Objetiva y Costo Computacional}
@@ -236,7 +239,7 @@ La Tabla~\ref{tab:metrics} resume los resultados promedio sobre los 60~fotograma
     \resizebox{\columnwidth}{!}{%
     \begin{tabular}{lccccc}
         \toprule
-        \textbf{Método} & \textbf{PSNR$\uparrow$} & \textbf{SSIM$\uparrow$} & \textbf{LPIPS$\downarrow$} & \textbf{fps} & \textbf{ms/fot.} \\
+        \textbf{Método} & \textbf{PSNR$\uparrow$} & \textbf{SSIM$\uparrow$} & \textbf{LPIPS$\downarrow$} & \textbf{fps sal.} & \textbf{ms/fot.} \\
         \midrule
         Bicúbica $\times$4           & 20.42 & 0.5132 & 0.7140 & 15 & 0.5 \\
         ESRGAN $\times$4             & 18.84 & 0.5194 & 0.3112 & 15 & 45.5 \\
@@ -253,7 +256,7 @@ Como se aprecia en la Tabla~\ref{tab:metrics}, ESRGAN obtiene un PSNR de 18.84~d
 
 En el dominio temporal, IFNet estima el flujo óptico intermedio de manera directa, estrategia que en estudios previos de interpolación~\cite{jiang2018superslomo, bao2019dain} ha mostrado producir transiciones más suaves y coherentes que el promediado simple de fotogramas. La mayor tasa de fotogramas resultante mejora la representación continua del movimiento y facilita el seguimiento de objetos por parte de operadores y algoritmos de análisis de video.
 
-En cuanto al costo computacional, ESRGAN tarda 45.5~ms por fotograma y RIFE 14.0~ms por cada fotograma sintetizado, medidos sobre la GPU RTX~4070~Ti con el modelo ya cargado en memoria. Como RIFE genera un fotograma por cada par de entrada, el flujo completo consume 52.5~ms por fotograma de entrada, equivalentes a 19.0~fps sostenidos. Al resolverse en $212\times120$~píxeles, el pico de memoria de video es de 360~MB para ESRGAN y 274~MB para RIFE, y como las etapas se ejecutan de forma secuencial el flujo se mantiene por debajo de 400~MB. El sistema procesa por tanto una cámara de 15~fps en tiempo real sobre una GPU de escritorio, sin necesidad de infraestructura en la nube, aunque la cifra deja poco margen para atender varias cámaras en paralelo con el mismo equipo.
+En cuanto al costo computacional, ESRGAN tarda 45.5~ms por fotograma y RIFE 14.0~ms por cada fotograma sintetizado, medidos sobre la GPU RTX~4070~Ti con el modelo ya cargado en memoria. Como RIFE genera un fotograma por cada par de entrada, el flujo completo consume 52.5~ms por fotograma de entrada, es decir que procesa 19.0~fotogramas de entrada por segundo. El pico de memoria de video es de 360~MB para ESRGAN y 274~MB para RIFE; como las etapas se ejecutan una después de la otra, el pico del flujo completo es el mayor de los dos y no su suma. El sistema procesa por tanto una cámara de 15~fps en tiempo real sobre una GPU de escritorio, sin necesidad de infraestructura en la nube, aunque el margen que queda es estrecho para atender varias cámaras en paralelo con el mismo equipo.
 
 Los resultados anteriores deben leerse considerando el alcance de las pruebas. La evaluación cuantitativa se apoya en 60~fotogramas de una sola escena exterior diurna, un conjunto suficiente para observar la tendencia entre métodos pero demasiado reducido para sostener conclusiones sobre el comportamiento del sistema en condiciones distintas. Falta en particular material nocturno e interior, donde el ruido del sensor y la iluminación artificial cambian de manera notable las degradaciones presentes. La degradación además se generó con un único protocolo sintético de parámetros fijos, mientras que las cámaras reales combinan desenfoque de movimiento, artefactos de compresión variables según el códec y pérdidas de transmisión; probar con degradaciones más diversas es necesario para estimar la robustez del sistema. A esto se suma que ESRGAN procesa cada fotograma de forma independiente, sin usar información de los fotogramas vecinos, lo que puede producir variaciones de textura entre fotogramas contiguos en las zonas donde la red sintetiza detalle. Por último, RIFE es sensible a los cambios de iluminación abruptos y a los movimientos muy rápidos, donde pueden aparecer halos o transiciones no naturales en los bordes de los objetos.
 
@@ -263,7 +266,7 @@ Los resultados anteriores deben leerse considerando el alcance de las pruebas. L
 
 Se evaluó un flujo de mejora de video en resolución y fluidez para sistemas CCTV, basado en la integración secuencial de ESRGAN~\cite{wang2018esrgan} ($4\times$ superresolución espacial) y RIFE~\cite{huang2022rife} ($2\times$ interpolación temporal), sobre secuencias degradadas a $212\times120$~píxeles mediante el protocolo sintético de Real-ESRGAN~\cite{wang2021realesrgan}. La contribución no es un modelo nuevo, sino la combinación de dos modelos preentrenados en un solo flujo y su caracterización sobre grabaciones de una cámara de vigilancia comercial, tanto en calidad de imagen como en costo de cómputo.
 
-La evaluación cuantitativa sobre 60~fotogramas muestra que ESRGAN obtiene un LPIPS de 0.311 frente a 0.714 del escalado bicúbico, una reducción del 56~\%, con una diferencia de SSIM marginal (0.5194 frente a 0.5132) y un PSNR 1.58~dB inferior. Este comportamiento es consistente con la brecha percepción-distorsión~\cite{blau2018perception}: el generador sacrifica fidelidad píxel a píxel para producir texturas visualmente coherentes que la bicúbica no recupera. En el dominio temporal, la prueba de exclusión sobre 23~tripletes con movimiento sitúa los fotogramas sintetizados por RIFE en 37.12~dB frente a 33.95~dB del promediado de vecinos. El flujo completo se ejecuta en 52.5~ms por fotograma de entrada y menos de 400~MB de memoria de video en una GPU de escritorio, lo que permite sostener la tasa de captura de la cámara sin recurrir a infraestructura externa. Los resultados se obtuvieron sobre una única escena diurna, por lo que constituyen una caracterización inicial y no una validación en condiciones variadas de operación.
+La evaluación cuantitativa sobre 60~fotogramas muestra que ESRGAN obtiene un LPIPS de 0.311 frente a 0.714 del escalado bicúbico, una reducción del 56~\%, con una diferencia de SSIM marginal (0.5194 frente a 0.5132) y un PSNR inferior, 18.84~dB frente a 20.42~dB. Este comportamiento es consistente con la brecha percepción-distorsión~\cite{blau2018perception}: el generador sacrifica fidelidad píxel a píxel para producir texturas visualmente coherentes que la bicúbica no recupera. En el dominio temporal, la prueba de exclusión sobre 23~tripletes con movimiento sitúa los fotogramas sintetizados por RIFE en 37.12~dB frente a 33.95~dB del promediado de vecinos. El flujo completo se ejecuta en 52.5~ms por fotograma de entrada, con un pico de 360~MB de memoria de video en una GPU de escritorio, lo que permite sostener la tasa de captura de la cámara sin recurrir a infraestructura externa. Los resultados se obtuvieron sobre una única escena diurna, por lo que constituyen una caracterización inicial y no una validación en condiciones variadas de operación.
 
 \subsection{Trabajos Futuros}
 
