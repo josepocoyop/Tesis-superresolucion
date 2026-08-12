@@ -3,16 +3,16 @@ Step 8 - Temporal interpolation figure from consecutive frames.
 
 Steps 2 to 4 sample 60 frames spread over the whole recording, which is what
 the spatial metrics need but is not a valid input for temporal interpolation:
-two of those frames are seconds apart. This script rebuilds Figure 6 from
-frames that really are consecutive, so the interpolated frame corresponds to
-the instant t+0.5 of the original sequence.
+two of those frames are seconds apart. This script builds the temporal figure
+from frames that really are consecutive, so the interpolated frame corresponds
+to the instant t+0.5 of the original sequence.
 
 It reads a short run of consecutive frames from the source video, applies the
 same degradation as Step 2, enhances frames t and t+1 with ESRGAN, and
 interpolates the middle one with RIFE.
 
 Inputs  : dataset/raw_videos/
-Outputs : ColCom Paper/figures/fig6_rife.png
+Outputs : ColCom Paper/figures/fig5_rife.png
 
 Usage:
     python step8_temporal_figure.py
@@ -124,7 +124,7 @@ def build_figure(frame_t, frame_interp, frame_t1):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Rebuild Figure 6 from consecutive frames')
+    parser = argparse.ArgumentParser(description='Rebuild the temporal figure from consecutive frames')
     parser.add_argument('--video', default='day_street.mp4')
     parser.add_argument('--frame', type=int, default=1269,
                         help='index of frame t; t+1 is the next one in the video')
@@ -157,7 +157,7 @@ def main():
     hr_b = hr_b[:h - h % SCALE_FACTOR, :w - w % SCALE_FACTOR]
 
     print('=' * 60)
-    print('Figure 6 from consecutive frames')
+    print('Temporal figure from consecutive frames')
     print('=' * 60)
     print(f'  Source : {video_path.name} ({fps:.1f} fps)')
     print(f'  Frames : {args.frame} and {args.frame + 1} (consecutive, {1000 / fps:.1f} ms apart)')
@@ -173,7 +173,7 @@ def main():
     mid = interpolate(sr_a, sr_b)
 
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
-    out = FIGURES_DIR / 'fig6_rife.png'
+    out = FIGURES_DIR / 'fig5_rife.png'
     fig = build_figure(sr_a, mid, sr_b)
     fig.savefig(str(out), dpi=300, bbox_inches='tight')
     print(f'Saved -> {out}')

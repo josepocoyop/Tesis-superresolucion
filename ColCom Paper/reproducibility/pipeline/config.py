@@ -107,4 +107,4 @@ THESIS_FIGURES_DIR    = OUTPUT_DIR / 'thesis_figures'
 # ---------------------------------------------------------------------------
 FIG_SINGLE_W  = 3.5    # one-column width in inches
 FIG_DOUBLE_W  = 7.16   # two-column width in inches
-FIG_DPI       = 300
+FIG_DPI       = 400   # con bbox tight quedan >300 DPI efectivos al ancho de dos columnas
