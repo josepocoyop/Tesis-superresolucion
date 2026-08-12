@@ -30,6 +30,8 @@ figuras_tesis/*.log
 *.out
 *.synctex.gz
 ColCom Paper/main.log
+ColCom Paper/figures/preview_tikz.pdf
+ColCom Paper/figures/*.log
 
 Thumbs.db
 .DS_Store

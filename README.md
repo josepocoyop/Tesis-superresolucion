@@ -4,14 +4,14 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white)
 ![GPU](https://img.shields.io/badge/GPU-RTX%204070%20Ti-76B900?logo=nvidia&logoColor=white)
 ![Tesis](https://img.shields.io/badge/Tesis-en%20desarrollo-yellow)
-![ColCom 2026](https://img.shields.io/badge/ColCom%202026-enviado-brightgreen)
+![ColCom 2026](https://img.shields.io/badge/ColCom%202026-aceptado-brightgreen)
 
 Proyecto de tesis: **"Desarrollo de un modelo de inteligencia artificial para el escalamiento visual en videovigilancia mediante técnicas de superresolución y transformadores visuales"**
 
 - **Autor:** Jose Rodriguez Botello (UFPS, Cúcuta)
 - **Director:** Sergio Castro Casadiego (UFPS)
 - **Co-director:** Sebastian Rojas-Ortega (University of Delaware)
-- **Artículo asociado:** ColCom 2026, ya enviado (`ColCom Paper/`)
+- **Artículo asociado:** ColCom 2026, aceptado; versión final en preparación (`ColCom Paper/`)
 
 Este documento explica **cómo el proyecto cumple cada uno de los cuatro objetivos específicos del anteproyecto aprobado**, qué scripts implementan cada uno, y qué falta por ejecutar. Los jurados verificarán el cumplimiento de cada objetivo, así que cada sección indica la evidencia concreta que la tesis debe presentar.
 
@@ -175,6 +175,7 @@ flowchart TD
 | `step6_finetune_esrgan.py` | Fine-tuning de Real-ESRGAN sobre el dataset propio de CCTV, con hiperparámetros documentados. Exporta los pesos afinados y corre inferencia | Obj. 3 |
 | `step7_compute_metrics.py` | PSNR/SSIM/LPIPS de los cuatro métodos, global y por condición de iluminación. Imprime las tablas LaTeX de la tesis | Obj. 4 |
 | `step8_generate_figures.py` | Tiras de comparación visual, acercamientos de detalle por condición, gráfica de métricas, curva de pérdidas del entrenamiento y figura de interpolación RIFE, a 300 DPI | Obj. 3 y 4 |
+| `step9_evaluate_rife.py` | Mide la calidad de los fotogramas que sintetiza RIFE mediante una prueba de exclusión sobre tripletes consecutivos con movimiento | Obj. 4 |
 
 Aparte, en `figuras_tesis/` están los scripts que producen material específico del documento de tesis:
 
@@ -182,11 +183,11 @@ Aparte, en `figuras_tesis/` están los scripts que producen material específico
 |---|---|
 | `fig_degradation.py` | Figura del protocolo de degradación sintética (original vs degradado, con detalles) |
 | `fig03_gan.tex`, `fig07_ajuste_fino.tex` | Diagramas de bloques en TikZ. Se compilan con `pdflatex` y se convierten con `pdftoppm -png -r 300 -singlefile` |
-| `measure_inference_time.py` | Cronometra bicúbico, ESRGAN preentrenado, ESRGAN afinado, SwinIR y RIFE sobre los mismos fotogramas |
+| `measure_inference_time.py` | Cronometra bicúbico, ESRGAN preentrenado, ESRGAN afinado, SwinIR y RIFE sobre los mismos fotogramas, y registra el pico de memoria de video de cada modelo |
 | `table_per_video_metrics.py` | Desglosa las métricas por video con media y desviación estándar, e imprime las tablas LaTeX |
 
 > [!WARNING]
-> Los scripts y métricas que se usaron para el artículo de ColCom están guardados en `ColCom Paper/reproducibility/`. Esa carpeta no se modifica, para poder reproducir el artículo tal como se envió. Todo el trabajo de la tesis va en `pipeline/`.
+> Los scripts y métricas del artículo de ColCom están en `ColCom Paper/reproducibility/`, separados del pipeline de la tesis. Ahí solo se tocan los archivos cuando la versión final del artículo lo exige, y cada cambio queda anotado en la sección de la versión final. Todo el trabajo de la tesis va en `pipeline/`.
 
 ## Orden de ejecución (local, GPU NVIDIA)
 
@@ -201,6 +202,7 @@ python pipeline/step5_swinir_inference.py  # SwinIR transformer (Obj. 2)
 python pipeline/step6_finetune_esrgan.py   # entrenamiento/fine-tuning (Obj. 3)
 python pipeline/step7_compute_metrics.py   # métricas por método y condición (Obj. 4)
 python pipeline/step8_generate_figures.py  # figuras de la tesis (Obj. 3 y 4)
+python pipeline/step9_evaluate_rife.py     # calidad de los fotogramas de RIFE (Obj. 4)
 ```
 
 > [!CAUTION]
@@ -255,16 +257,27 @@ Por video (PSNR en dB, media ± desviación estándar; las tablas completas de S
 | SwinIR ×4 | 18.787 ± 0.191 | 18.740 ± 0.065 | 17.700 ± 0.106 |
 | **ESRGAN ×4 (fine-tuned)** | 20.062 ± 0.178 | **20.654 ± 0.083** | **18.299 ± 0.094** |
 
-Tiempos por fotograma (RTX 4070 Ti, entrada de 212x120 a 848x480, 20 fotogramas cronometrados con calentamiento previo, `figuras_tesis/measure_inference_time.py`):
+Tiempos por fotograma y memoria de video (RTX 4070 Ti, entrada de 212x120 a 848x480, 20 fotogramas cronometrados con calentamiento previo, `figuras_tesis/measure_inference_time.py`):
 
-| Método | ms/fotograma | fps |
-|---|---|---|
-| Bicúbica (CPU) | 0.6 | 1608 |
-| ESRGAN ×4 (preentrenado) | 45.7 | 21.9 |
-| SwinIR ×4 | 149.3 | 6.7 |
-| ESRGAN ×4 (fine-tuned) | 45.0 | 22.2 |
-| RIFE (por fotograma interpolado, 848x480) | 13.4 | 74.6 |
-| **Pipeline completo por fotograma de entrada** | **51.7** | **19.4** |
+| Método | ms/fotograma | fps | Pico de VRAM |
+|---|---|---|---|
+| Bicúbica (CPU) | 0.5 | 1854 | n/a |
+| ESRGAN ×4 (preentrenado) | 45.5 | 22.0 | 360 MB |
+| SwinIR ×4 | 148.2 | 6.7 | 596 MB |
+| ESRGAN ×4 (fine-tuned) | 44.7 | 22.4 | 360 MB |
+| RIFE (por fotograma interpolado, 848x480) | 14.0 | 71.4 | 274 MB |
+| **Pipeline completo por fotograma de entrada** | **51.7** | **19.3** | **< 400 MB** |
+
+El pico de VRAM se mide con `torch.cuda.max_memory_reserved()` tras el calentamiento. Como las etapas corren una después de otra, el pico del pipeline es el mayor de los dos, no la suma. Los valores cambian unas décimas entre ejecuciones; los de la tabla son los de la corrida guardada en `output/metrics/inference_times.json`.
+
+Calidad de los fotogramas que sintetiza RIFE (`pipeline/step9_evaluate_rife.py`, 23 tripletes consecutivos de `day_street.mp4` con movimiento apreciable):
+
+| Método | PSNR | SSIM | LPIPS |
+|---|---|---|---|
+| Promedio de los dos vecinos | 33.95 | 0.9759 | 0.0161 |
+| **RIFE** | **37.12** | **0.9836** | **0.0111** |
+
+Los fotogramas interpolados no tienen referencia, así que se ocultó el fotograma central de cada triplete y se comparó con él. Solo se usan tripletes con movimiento (diferencia media > 3 DN entre los extremos): en los tramos quietos cualquier método acierta y la comparación no dice nada.
 
 Lo que muestran estos números:
 
@@ -295,6 +308,33 @@ Los archivos quedaron en:
 
 ---
 
+## Artículo ColCom 2026: versión final (agosto 2026)
+
+El artículo fue aceptado. La versión enviada quedó archivada completa en `ColCom Paper/v1_submitted/` (fuente, bibliografía, figuras y PDF), para poder comparar contra ella. La versión final se prepara sobre `ColCom Paper/main.tex`, con fecha límite del 22 de agosto de 2026 y el mismo límite de 6 páginas incluyendo referencias.
+
+Qué pidieron los dos revisores y cómo se atendió:
+
+| Observación | Qué se hizo |
+|---|---|
+| Declarar explícitamente que la contribución es la integración y la evaluación, no un algoritmo nuevo | Párrafo nuevo al final de la Introducción y primer párrafo de las Conclusiones |
+| Añadir métricas computacionales (ms/fotograma, fps, VRAM) | Dos columnas nuevas en la Tabla I y un párrafo de costo computacional en la Discusión |
+| Reconocer las limitaciones de la evaluación | Párrafo nuevo en la Discusión: conjunto de 60 fotogramas de una sola escena diurna, un único protocolo de degradación, y la variación de textura entre fotogramas por procesar cada uno por separado |
+| Explicar cómo evaluar los fotogramas que añade RIFE | Prueba de exclusión sobre tripletes consecutivos (`step9_evaluate_rife.py`), reportada en la sección de fluidez temporal |
+| Las figuras 2 y 3 no se citaban en el texto | Ahora se citan en la arquitectura del flujo de trabajo y en las subsecciones de cada modelo |
+
+Cambios adicionales que salieron de la revisión completa del texto:
+
+- **Figuras 1, 2 y 3 rehechas en TikZ** (`ColCom Paper/figures/fig1_pipeline.tex`, `fig2_esrgan.tex`, `fig3_rife.tex`, con estilos comunes en `tikzstyles.tex`). Se compilan dentro del propio documento, así que salen vectoriales. Las anteriores tenían errores: rótulos duplicados, ESRGAN dibujado como un perceptrón multicapa cuando es convolucional, un pie que prometía discriminador y pérdida perceptual que no aparecían en el dibujo, y texto ilegible dentro de los fotogramas. La Fig. 2 ahora incluye la conexión residual global del generador, que faltaba. Para revisar las tres al ancho real de columna: `pdflatex preview_tikz.tex` dentro de `figures/`.
+- **Figura 6 regenerada** con `ColCom Paper/reproducibility/pipeline/step8_temporal_figure.py`. La anterior interpolaba entre dos de los 60 fotogramas que step2 reparte por toda la grabación, que están separados unos 65 fotogramas; no eran contiguos y por tanto no ilustraban la interpolación temporal. Ahora usa los fotogramas 1269 y 1270 del video, separados 66.7 ms.
+- **Descripción del material corregida.** El texto decía "dominio público"; es una grabación propia de una cámara EZVIZ, cuyo logotipo se ve además en las figuras 4 y 5.
+- **Contradicción eliminada.** La Discusión afirmaba que el procesamiento "requiere entornos de nube"; todo se ejecutó localmente y ahora se reportan los tiempos medidos.
+- Se quitó una cita que no venía al caso (se citaba un artículo de conteo de personas para justificar el número de fotogramas) y se corrigió la afirmación de que los 60 fotogramas cubrían 4 segundos seguidos, cuando están repartidos por toda la grabación.
+- `ColCom Paper/reproducibility/pipeline/config.py`: `BASE_DIR` apuntaba dos niveles arriba, correcto cuando la carpeta estaba en la raíz pero roto desde que se movió dentro de `ColCom Paper/`. Ningún script de esa carpeta podía correr. Ya quedó apuntando a la raíz del proyecto.
+
+Pendiente de confirmar con la organización: el bloque de copyright de IEEE en la primera página, la validación por PDF eXpress y el formulario de cesión de derechos. El anuncio público de la conferencia no dice nada de eso, así que debe salir del correo de aceptación.
+
+---
+
 ## Trabajo pendiente en el documento de tesis
 
 El anteproyecto (`Anteproyecto.pdf`) tiene los capítulos 1 a 4 casi completos. Para convertirlo en tesis falta:
@@ -312,7 +352,7 @@ El anteproyecto (`Anteproyecto.pdf`) tiene los capítulos 1 a 4 casi completos. 
 
 ```text
 Jose/
-├── pipeline/                  Scripts del experimento de la tesis (steps 1-8)
+├── pipeline/                  Scripts del experimento de la tesis (steps 1-9)
 ├── dataset/
 │   ├── raw_videos/            Videos fuente (nombrar day_*, night_*, indoor_*)
 │   ├── frames_hr/             Fotogramas de referencia (ground truth)
@@ -326,8 +366,11 @@ Jose/
 │   ├── metrics/               CSV y JSON de métricas
 │   └── thesis_figures/        Figuras para la tesis (300 DPI)
 ├── weights/                   Pesos preentrenados y afinados
-├── ColCom Paper/              Artículo IEEE (ya enviado)
-│   └── reproducibility/       Copia congelada de scripts y métricas del artículo (no editar)
+├── ColCom Paper/              Artículo IEEE (aceptado, versión final en curso)
+│   ├── main.tex               Versión final que se está preparando
+│   ├── figures/               Figs. 1-3 en TikZ, Figs. 4-6 generadas por el pipeline
+│   ├── v1_submitted/          Copia exacta de la versión enviada a revisión
+│   └── reproducibility/       Scripts y métricas del artículo, aparte del pipeline de tesis
 ├── Archive/                   Código viejo fuera de uso (no está en el repo)
 └── Anteproyecto.pdf           Anteproyecto aprobado
 ```
