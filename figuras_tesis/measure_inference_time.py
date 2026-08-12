@@ -3,8 +3,9 @@ Measure per-frame inference time of every method compared in the thesis.
 
 Covers bicubic upscaling, pretrained ESRGAN, fine-tuned ESRGAN, SwinIR and
 RIFE. Times only the model call (warm start, model already loaded) so the
-numbers are comparable between methods. Results go to
-output/metrics/inference_times.json and are printed as a LaTeX-ready table.
+numbers are comparable between methods, and records the peak VRAM each model
+reserves while running. Results go to output/metrics/inference_times.json and
+are printed as a LaTeX-ready table.
 
 Usage:
     python measure_inference_time.py
@@ -29,6 +30,14 @@ from config import (
 def load_images(frames, n):
     import cv2
     return [cv2.imread(str(p), cv2.IMREAD_COLOR) for p in frames[:n + 3]]
+
+
+def peak_vram_mb():
+    """Peak VRAM reserved since the last reset, in MB."""
+    import torch
+    if not torch.cuda.is_available():
+        return 0.0
+    return torch.cuda.max_memory_reserved() / 1024 ** 2
 
 
 def time_bicubic(imgs, n):
@@ -63,16 +72,18 @@ def time_esrgan(imgs, n, weights):
     for img in imgs[:3]:
         upsampler.enhance(img, outscale=SCALE_FACTOR)
     torch.cuda.synchronize()
+    torch.cuda.reset_peak_memory_stats()
 
     t0 = time.perf_counter()
     for img in imgs[3:3 + n]:
         upsampler.enhance(img, outscale=SCALE_FACTOR)
     torch.cuda.synchronize()
     ms = (time.perf_counter() - t0) / n * 1000
+    vram = peak_vram_mb()
 
     del upsampler, model
     torch.cuda.empty_cache()
-    return ms
+    return ms, vram
 
 
 def time_swinir(imgs, n):
@@ -87,16 +98,18 @@ def time_swinir(imgs, n):
     for img in imgs[:3]:
         infer_frame(model, img, device, tile=0)
     torch.cuda.synchronize()
+    torch.cuda.reset_peak_memory_stats()
 
     t0 = time.perf_counter()
     for img in imgs[3:3 + n]:
         infer_frame(model, img, device, tile=0)
     torch.cuda.synchronize()
     ms = (time.perf_counter() - t0) / n * 1000
+    vram = peak_vram_mb()
 
     del model
     torch.cuda.empty_cache()
-    return ms
+    return ms, vram
 
 
 def time_rife(frames, n):
@@ -137,7 +150,18 @@ def time_rife(frames, n):
         for a, b in pairs[3:3 + n]:
             model.inference(a, b)
         torch.cuda.synchronize()
-    return (time.perf_counter() - t0) / n * 1000
+        ms = (time.perf_counter() - t0) / n * 1000
+
+        # the pairs above sit in VRAM all at once, which is an artifact of the
+        # timing loop, so the footprint is measured again on a single pair
+        del pairs
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        model.inference(to_tensor(frames[0]), to_tensor(frames[1]))
+        torch.cuda.synchronize()
+        vram = peak_vram_mb()
+
+    return ms, vram
 
 
 def main():
@@ -167,32 +191,33 @@ def main():
           f'{n} frames per method\n')
 
     times = {}
+    vram = {}
 
     print('Bicubic (CPU)...')
     times['bicubic'] = time_bicubic(imgs, n)
     print(f'  {times["bicubic"]:.1f} ms/frame')
 
     print('ESRGAN pretrained...')
-    times['esrgan_pretrained'] = time_esrgan(imgs, n, ESRGAN_WEIGHTS)
-    print(f'  {times["esrgan_pretrained"]:.1f} ms/frame')
+    times['esrgan_pretrained'], vram['esrgan_pretrained'] = time_esrgan(imgs, n, ESRGAN_WEIGHTS)
+    print(f'  {times["esrgan_pretrained"]:.1f} ms/frame, {vram["esrgan_pretrained"]:.0f} MB')
 
     if ESRGAN_FT_WEIGHTS.exists():
         print('ESRGAN fine-tuned...')
-        times['esrgan_finetuned'] = time_esrgan(imgs, n, ESRGAN_FT_WEIGHTS)
-        print(f'  {times["esrgan_finetuned"]:.1f} ms/frame')
+        times['esrgan_finetuned'], vram['esrgan_finetuned'] = time_esrgan(imgs, n, ESRGAN_FT_WEIGHTS)
+        print(f'  {times["esrgan_finetuned"]:.1f} ms/frame, {vram["esrgan_finetuned"]:.0f} MB')
     else:
         print('WARNING: fine-tuned weights not found, skipping.')
 
     if SWINIR_WEIGHTS.exists() and SWINIR_DIR.exists():
         print('SwinIR...')
-        times['swinir'] = time_swinir(imgs, n)
-        print(f'  {times["swinir"]:.1f} ms/frame')
+        times['swinir'], vram['swinir'] = time_swinir(imgs, n)
+        print(f'  {times["swinir"]:.1f} ms/frame, {vram["swinir"]:.0f} MB')
     else:
         print('WARNING: SwinIR repo or weights not found, skipping.')
 
     print(f'RIFE ({sr_shape[1]}x{sr_shape[0]})...')
-    times['rife'] = time_rife(sr_frames, n)
-    print(f'  {times["rife"]:.1f} ms/interpolated frame')
+    times['rife'], vram['rife'] = time_rife(sr_frames, n)
+    print(f'  {times["rife"]:.1f} ms/interpolated frame, {vram["rife"]:.0f} MB')
 
     base = times.get('esrgan_finetuned', times['esrgan_pretrained'])
     total = base + times['rife'] / 2  # RIFE adds one frame per input pair
@@ -210,7 +235,8 @@ def main():
     ]
     for key, label in labels:
         if key in times:
-            print(f'{label} & {times[key]:.1f} & {1000 / times[key]:.1f} \\\\')
+            mem = f' & {vram[key]:.0f}' if key in vram else ' & --'
+            print(f'{label} & {times[key]:.1f} & {1000 / times[key]:.1f}{mem} \\\\')
 
     result = {
         'gpu': gpu,
@@ -220,6 +246,7 @@ def main():
         'esrgan_weights': (ESRGAN_FT_WEIGHTS.name if ESRGAN_FT_WEIGHTS.exists()
                            else ESRGAN_WEIGHTS.name),
         'ms_per_frame': {k: round(v, 1) for k, v in times.items()},
+        'peak_vram_mb': {k: round(v) for k, v in vram.items()},
         'pipeline_ms_per_input_frame': round(total, 1),
         # kept for backwards compatibility with the first measurement
         'esrgan_ms_per_frame': round(base, 1),

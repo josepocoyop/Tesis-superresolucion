@@ -1,0 +1,17 @@
+{
+  "video": "day_street.mp4",
+  "triplets": 23,
+  "stride": 5,
+  "min_motion": 3.0,
+  "mean_motion": 4.19,
+  "blend": {
+    "psnr": 33.95,
+    "ssim": 0.9759,
+    "lpips": 0.0161
+  },
+  "rife": {
+    "psnr": 37.12,
+    "ssim": 0.9836,
+    "lpips": 0.0111
+  }
+}
