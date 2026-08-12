@@ -331,6 +331,8 @@ Cambios adicionales que salieron de la revisión completa del texto:
 - Se quitó una cita que no venía al caso (se citaba un artículo de conteo de personas para justificar el número de fotogramas) y se corrigió la afirmación de que los 60 fotogramas cubrían 4 segundos seguidos, cuando están repartidos por toda la grabación.
 - `ColCom Paper/reproducibility/pipeline/config.py`: `BASE_DIR` apuntaba dos niveles arriba, correcto cuando la carpeta estaba en la raíz pero roto desde que se movió dentro de `ColCom Paper/`. Ningún script de esa carpeta podía correr. Ya quedó apuntando a la raíz del proyecto.
 
+**Auditoría de la bibliografía.** Se verificaron las 24 entradas del `.bib` una por una contra DBLP y las actas originales. Tres tenían autores equivocados: ESRGAN omitía a Yu Qiao e incluía a Xiaoou Tang, que no es autor; RCAN decía "Ling Wang" en vez de Lichen Wang; y el artículo de conteo de personas decía "Jing Li" y "Liping Huang" en vez de Jingwen Li y Lei Huang. ESRGAN y RIFE se citaban con un enlace a GitHub en lugar de la publicación (ECCV 2018 Workshops pp. 63-79 y ECCV 2022 pp. 624-642). SRGAN, EDSR y RCAN traían la paginación de CVF mezclada con la oficial de las actas; ahora toda la bibliografía usa la paginación oficial. Se quitó la entrada de Google Colaboratory, que ya no se cita. El resto de datos (autores, año, volumen, número, páginas y DOI) se confirmó correcto.
+
 Pendiente de confirmar con la organización: el bloque de copyright de IEEE en la primera página, la validación por PDF eXpress y el formulario de cesión de derechos. El anuncio público de la conferencia no dice nada de eso, así que debe salir del correo de aceptación.
 
 ---
