@@ -2,10 +2,10 @@
 \begin{tikzpicture}[diagram]
 
   % generador, la unica parte que se ejecuta en inferencia
-  \pic (lr) at (0,1.7) {framestack};
-  \node[note, left=0.6mm of lr-west] {LR};
+  \framestack{lr}{thumb_lr.png}{(0.5,1.95)}
+  \node[note, left=0.8mm of lr.west] {LR};
 
-  \node[block, minimum width=8mm, right=2.2mm of lr-east, anchor=west] (c1) {Conv};
+  \node[block, minimum width=8mm, right=4.5mm of lr, anchor=west] (c1) {Conv};
   \node[block, minimum width=12mm, right=3mm of c1] (rrdb) {RRDB\\$\times 23$};
   \node[block, minimum width=14mm, right=5mm of rrdb] (up) {Muestreo\\ascendente $\times4$};
   \node[block, minimum width=8mm, right=3mm of up] (c2) {Conv};
@@ -15,27 +15,27 @@
     (sum) at ($(rrdb.east)!0.5!(up.west)$) {$+$};
   \draw[flow] (c1.north) .. controls +(0,0.45) and +(0,0.45) .. (sum.north);
 
-  \pic (sr) at ($(c2.east)+(0.3,-0.36)$) {framestack};
-  \node[note, above=0.6mm of sr-north] {SR};
+  \framestack{sr}{thumb_sr.png}{($(c2.east)+(0.78,0)$)}
+  \node[note, above=0.8mm of sr.north] {SR};
 
-  \draw[flow] (lr-east) -- (c1.west);
+  \draw[flow] (lr.east) -- (c1.west);
   \draw[flow] (c1) -- (rrdb);
   \draw[flow] (rrdb.east) -- (sum.west);
   \draw[flow] (sum.east) -- (up.west);
   \draw[flow] (up) -- (c2);
-  \draw[flow] (c2.east) -- (sr-west);
+  \draw[flow] (c2.east) -- (sr.west);
 
   \begin{scope}[on background layer]
     \node[draw=black!45, densely dashed, rounded corners=1.5pt,
-          inner xsep=2mm, inner ysep=3.2mm, fit=(lr-west)(c1)(c2)(sr-east)] (gen) {};
+          inner xsep=2mm, inner ysep=3.2mm, fit=(lr)(c1)(c2)(sr)] (gen) {};
   \end{scope}
   \node[note, anchor=north west] at ($(gen.north west)+(1mm,-0.4mm)$) {Generador};
 
   % perdidas, solo intervienen durante el entrenamiento
-  \pic (hr) at (0,0) {framestack};
-  \node[note, below=0.8mm of hr-south] {Referencia\\HR};
+  \framestack{hr}{thumb_hr.png}{(0.5,0.32)}
+  \node[note, below=1.4mm of hr.south] {Referencia\\HR};
 
-  \node[lossblock, minimum width=17mm] (l1) at (3.05,0.36)
+  \node[lossblock, minimum width=17mm] (l1) at (3.05,0.32)
     {$\mathcal{L}_1$\\píxel};
   \node[lossblock, minimum width=17mm, right=2mm of l1] (lp)
     {$\mathcal{L}_{\mathrm{perc}}$\\VGG};
@@ -49,7 +49,7 @@
   \node[note, anchor=north east] at ($(losses.south east)+(0,-0.6mm)$)
     {Solo durante el entrenamiento};
 
-  \draw[flow] (hr-east) -- (losses.west);
-  \draw[flow] (sr-south) -- (la.north);
+  \draw[flow] (hr.east) -- (losses.west);
+  \draw[flow] (sr.south) -- (la.north);
 
 \end{tikzpicture}

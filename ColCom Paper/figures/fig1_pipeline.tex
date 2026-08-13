@@ -1,23 +1,23 @@
 % Fig. 1: flujo de trabajo propuesto.
 \begin{tikzpicture}[diagram]
 
-  \pic (lr) at (0,0) {framestack};
-  \node[note, below=1.2mm of lr-south] (lrlab)
+  \framestack{lr}{thumb_lr.png}{(0.5,0.4)}
+  \node[note, below=1.6mm of lr.south] (lrlab)
     {Fotogramas LR\\$212\times120$, 15 fps};
 
-  \node[block, minimum width=21mm, right=3.5mm of lr-east, anchor=west] (sr)
+  \node[block, minimum width=21mm, right=5mm of lr, anchor=west] (sr)
     {\textbf{ESRGAN}\\Superresolución\\espacial ($\times4$)};
 
   \node[block, minimum width=21mm, right=9mm of sr] (rife)
     {\textbf{RIFE}\\Interpolación\\temporal ($\times2$)};
 
-  \pic (out) at ($(rife.east)+(0.35,-0.36)$) {framestack};
-  \node[note, below=1.2mm of out-south] (outlab)
+  \framestack{out}{thumb_sr.png}{($(rife.east)+(0.9,0)$)}
+  \node[note, below=1.6mm of out.south] (outlab)
     {Video mejorado\\$848\times480$, 30 fps};
 
-  \draw[flow] (lr-east) -- (sr.west);
+  \draw[flow] (lr.east) -- (sr.west);
   \draw[flow] (sr.east) -- (rife.west);
-  \draw[flow] (rife.east) -- (out-west);
+  \draw[flow] (rife.east) -- (out.west);
 
   \coordinate (mid) at ($(sr.east)!0.5!(rife.west)$);
   \node[note] at (mid |- lrlab) {$848\times480$\\15 fps};
