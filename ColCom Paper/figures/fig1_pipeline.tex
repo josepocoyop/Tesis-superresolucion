@@ -1,7 +1,7 @@
 % Fig. 1: flujo de trabajo propuesto.
 \begin{tikzpicture}[diagram]
 
-  \framestack{lr}{thumb_lr.png}{(0.5,0.4)}
+  \singleframe{lr}{thumb_lr.png}{(0.5,0.4)}
   \node[note, below=1.6mm of lr.south] (lrlab)
     {Fotogramas LR\\$212\times120$, 15 fps};
 
@@ -11,7 +11,7 @@
   \node[block, minimum width=21mm, right=9mm of sr] (rife)
     {\textbf{RIFE}\\Interpolación\\temporal ($\times2$)};
 
-  \framestack{out}{thumb_sr.png}{($(rife.east)+(0.9,0)$)}
+  \singleframe{out}{thumb_sr.png}{($(rife.east)+(0.9,0)$)}
   \node[note, below=1.6mm of out.south] (outlab)
     {Video mejorado\\$848\times480$, 30 fps};
 

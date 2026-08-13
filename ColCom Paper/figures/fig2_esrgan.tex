@@ -2,7 +2,7 @@
 \begin{tikzpicture}[diagram]
 
   % generador, la unica parte que se ejecuta en inferencia
-  \framestack{lr}{thumb_lr.png}{(0.5,1.95)}
+  \singleframe{lr}{thumb_lr.png}{(0.5,1.95)}
   \node[note, left=0.8mm of lr.west] {LR};
 
   \node[block, minimum width=8mm, right=4.5mm of lr, anchor=west] (c1) {Conv};
@@ -15,7 +15,7 @@
     (sum) at ($(rrdb.east)!0.5!(up.west)$) {$+$};
   \draw[flow] (c1.north) .. controls +(0,0.45) and +(0,0.45) .. (sum.north);
 
-  \framestack{sr}{thumb_sr.png}{($(c2.east)+(0.78,0)$)}
+  \singleframe{sr}{thumb_sr.png}{($(c2.east)+(0.78,0)$)}
   \node[note, above=0.8mm of sr.north] {SR};
 
   \draw[flow] (lr.east) -- (c1.west);
@@ -32,19 +32,19 @@
   \node[note, anchor=north west] at ($(gen.north west)+(1mm,-0.4mm)$) {Generador};
 
   % perdidas, solo intervienen durante el entrenamiento
-  \framestack{hr}{thumb_hr.png}{(0.5,0.32)}
+  \singleframe{hr}{thumb_hr.png}{(0.5,0.32)}
   \node[note, below=1.4mm of hr.south] {Referencia\\HR};
 
-  \node[lossblock, minimum width=17mm] (l1) at (3.05,0.32)
-    {$\mathcal{L}_1$\\píxel};
-  \node[lossblock, minimum width=17mm, right=2mm of l1] (lp)
-    {$\mathcal{L}_{\mathrm{perc}}$\\VGG};
-  \node[lossblock, minimum width=22mm, right=2mm of lp] (la)
-    {$\mathcal{L}_{\mathrm{adv}}$\\disc.\ relativista};
+  \node[lossblock, minimum width=19mm] (l1) at (3.05,0.32)
+    {$\mathcal{L}_1$\\error por píxel};
+  \node[lossblock, minimum width=19mm, right=2mm of l1] (lp)
+    {$\mathcal{L}_{\mathrm{perc}}$\\perceptual (VGG)};
+  \node[lossblock, minimum width=19mm, right=2mm of lp] (la)
+    {$\mathcal{L}_{\mathrm{adv}}$\\discriminador};
 
   \begin{scope}[on background layer]
     \node[draw=black!45, densely dashed, rounded corners=1.5pt,
-          inner xsep=1.6mm, inner ysep=1.6mm, fit=(l1)(la)] (losses) {};
+          inner xsep=1.1mm, inner ysep=1.4mm, fit=(l1)(la)] (losses) {};
   \end{scope}
   \node[note, anchor=north east] at ($(losses.south east)+(0,-0.6mm)$)
     {Solo durante el entrenamiento};
