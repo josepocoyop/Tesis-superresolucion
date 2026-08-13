@@ -66,7 +66,7 @@ Automatic video enhancement based on deep learning is a practical way around the
 
 This paper evaluates a sequential pipeline that combines ESRGAN for frame-by-frame spatial restoration and RIFE for temporal interpolation between consecutive frames, applied to surveillance sequences degraded to $212\times120$~pixels with the Real-ESRGAN synthetic protocol.
 
-The scope of the contribution is a narrow one. Both models already exist and are used with their pretrained weights, without changing their architectures or retraining them. What this work adds is the integration of the two stages into a single pipeline, its evaluation on footage from a commercial surveillance camera under a reproducible degradation protocol, and the measurement of the computational cost that this combination imposes on a desktop GPU. No new super-resolution or interpolation algorithm is proposed.
+The contribution has a narrow scope. Both models already exist and are used with their pretrained weights, without changing their architectures or retraining them. What this work adds is the integration of the two stages into a single pipeline, its evaluation on footage from a commercial surveillance camera under a reproducible degradation protocol, and the measurement of the computational cost that this combination imposes on a desktop GPU. No new super-resolution or interpolation algorithm is proposed.
 
 \section{Related Work}
 
@@ -154,7 +154,7 @@ RIFE (\textit{Real-time Intermediate Flow Estimation})~\cite{huang2022rife} is a
 
 \section{Experimental Results}
 
-The proposed pipeline was evaluated on the recording described in Section~\ref{sec:dataset} along three lines: the visual reconstruction, the quality of the frames added by the temporal interpolation, and the objective metrics against bicubic upscaling.
+The proposed pipeline was evaluated on the recording described in Section~\ref{sec:dataset} along three lines: the visual reconstruction, the quality of the frames added by the temporal interpolation, and the objective metrics against bicubic upscaling. The three metrics used throughout, PSNR, SSIM, and LPIPS, are defined in Section~\ref{sec:metrics}.
 
 \subsection{Qualitative Evaluation}
 
@@ -192,6 +192,7 @@ The synthesized frames have no reference to be compared against, since they are 
 \end{figure*}
 
 \subsection{Quantitative Evaluation}
+\label{sec:metrics}
 
 The objective quality of the spatial enhancement was measured with PSNR (\textit{Peak Signal-to-Noise Ratio}) and SSIM (\textit{Structural Similarity Index}). PSNR relates the maximum signal power to the reconstruction error~\cite{huynhthu2008psnr}:
 
