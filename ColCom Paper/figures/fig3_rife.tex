@@ -1,33 +1,41 @@
 % Fig. 3: arquitectura de RIFE.
 \begin{tikzpicture}[diagram]
 
-  \singleframe{ia}{thumb_t.png}{(0.48,1.86)}
+  \singleframe{ia}{thumb_t.png}{(0.62,1.95)}
   \node[note, above=0.6mm of ia.north] {$I_t$};
-  \singleframe{ib}{thumb_t1.png}{(0.48,0.86)}
+  \singleframe{ib}{thumb_t1.png}{(0.62,0.95)}
   \node[note, below=0.6mm of ib.south] {$I_{t+1}$};
 
-  \node[block, minimum width=17mm, minimum height=12mm] (ifnet) at (2.55,1.36)
-    {\textbf{IFNet}\\estimación\\multiescala};
+  \node[block, minimum width=17mm, minimum height=13mm] (ifnet) at (2.75,1.45)
+    {\textbf{IFNet}\\estimación del\\movimiento\\{\color{black!60}3 escalas}};
 
-  \node[auxblock, minimum width=22mm, minimum height=8mm] (flow) at (5.5,1.36)
-    {Flujo intermedio\\$F_{t\rightarrow t+0.5}$};
+  \node[auxblock, minimum width=25mm, minimum height=9mm] (est) at (5.85,1.45)
+    {Flujo $F_{t\rightarrow t+0.5}$\\y máscara de fusión $M$};
 
   \draw[flow] (ia.east) -- (ifnet.west);
   \draw[flow] (ib.east) -- (ifnet.west);
-  \draw[flow] (ifnet) -- (flow);
+  \draw[flow] (ifnet.east) -- (est.west);
 
-  \node[block, minimum width=16mm] (warp) at (1.6,-0.5)
-    {Deformación\\(\textit{warping})};
-  \node[block, minimum width=21mm] (fuse) at (4.5,-0.5)
-    {Fusión y\\refinamiento};
-  \singleframe{out}{thumb_mid.png}{(6.75,-0.5)}
+  \node[block, minimum width=20mm] (warp) at (2.05,-0.62)
+    {Deformación de\\ambos fotogramas};
+  \node[block, minimum width=21mm] (fuse) at (4.95,-0.62)
+    {Mezcla ponderada\\por $M$};
+  \singleframe{out}{thumb_mid.png}{($(fuse.east)+(0.95,0)$)}
   \node[note, below=0.7mm of out.south] {$I_{t+0.5}$};
 
-  \draw[flow] (flow.south) -- ++(0,-0.42) -| (warp.north);
+  % el flujo va a la deformacion y la mascara a la mezcla; ambos salen del
+  % mismo punto para no cruzar lineas
+  \coordinate (j) at ($(est.south)-(0,0.55)$);
+  \draw[flow] (est.south) -- (j) -| (warp.north);
+  \draw[flow] (est.south) -- (j) -| (fuse.north);
+  \node[note, above left=0mm and 0.5mm of warp.north] {$F$};
+  \node[note, above right=0mm and 0.5mm of fuse.north] {$M$};
+
   \draw[flow] (warp) -- (fuse);
   \draw[flow] (fuse.east) -- (out.west);
 
-  \draw[aux] (ia.west) -- ++(-0.32,0) |- (warp.west);
-  \draw[aux] (ib.west) -- ++(-0.32,0) |- (warp.west);
+  % los dos fotogramas de entrada tambien alimentan la deformacion
+  \draw[aux] (ia.west) -- ++(-0.28,0) |- (warp.west);
+  \draw[aux] (ib.west) -- ++(-0.28,0) |- (warp.west);
 
 \end{tikzpicture}

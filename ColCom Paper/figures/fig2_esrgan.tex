@@ -3,11 +3,13 @@
 
   % generador, la unica parte que se ejecuta en inferencia
   \singleframe{lr}{thumb_lr.png}{(0.5,1.95)}
-  \node[note, left=0.8mm of lr.west] {LR};
+  \node[note, below=0.8mm of lr.south] {LR};
 
   \node[block, minimum width=8mm, right=4.5mm of lr, anchor=west] (c1) {Conv};
-  \node[block, minimum width=12mm, right=3mm of c1] (rrdb) {RRDB\\$\times 23$};
-  \node[block, minimum width=14mm, right=5mm of rrdb] (up) {Muestreo\\ascendente $\times4$};
+  \node[block, minimum width=13mm, right=3mm of c1] (rrdb)
+    {RRDB\\$\times 23$\\{\color{black!60}64 canales}};
+  \node[block, minimum width=15mm, right=4mm of rrdb] (up)
+    {Muestreo\\ascendente\\{\color{black!60}dos etapas $\times2$}};
   \node[block, minimum width=8mm, right=3mm of up] (c2) {Conv};
 
   % conexion residual global alrededor del tronco de bloques RRDB

@@ -140,18 +140,18 @@ ESRGAN (\textit{Enhanced Super-Resolution Generative Adversarial Network})~\cite
 \begin{figure}[t]
     \centering
     \input{figures/fig2_esrgan}
-    \caption{Arquitectura de ESRGAN~\cite{wang2018esrgan}. El generador encadena una convolución inicial, 23 bloques RRDB con conexión residual global, la etapa de muestreo ascendente $\times4$ y una convolución final. Las tres funciones de pérdida solo intervienen durante el entrenamiento; en inferencia se ejecuta únicamente el generador.}
+    \caption{Arquitectura de ESRGAN~\cite{wang2018esrgan}. El generador encadena una convolución inicial, 23 bloques RRDB de 64 canales con conexión residual global, el muestreo ascendente en dos pasos de $\times2$ y las convoluciones de salida. Las tres funciones de pérdida solo intervienen durante el entrenamiento; en inferencia se ejecuta únicamente el generador.}
     \label{fig:esrgan}
 \end{figure}
 
 \subsubsection{RIFE}
 
-RIFE (\textit{Real-time Intermediate Flow Estimation})~\cite{huang2022rife} es un modelo de interpolación de fotogramas que estima directamente el flujo óptico intermedio entre dos fotogramas consecutivos, sin recurrir a la descomposición bidireccional empleada por métodos anteriores como DAIN~\cite{bao2019dain} y Super~SloMo~\cite{jiang2018superslomo}. Su componente central, IFNet, calcula este flujo a múltiples escalas de resolución, de forma progresiva. Un esquema de destilación de conocimiento~\cite{hinton2015distilling} guía el entrenamiento de IFNet, permitiéndole aprender representaciones de movimiento precisas de manera eficiente. El fotograma intermedio se reconstruye aplicando deformación espacial (\textit{warping}) sobre los fotogramas adyacentes, ponderada por el flujo estimado, seguida de una etapa de fusión que corrige inconsistencias en regiones de oclusión, tal como se esquematiza en la Fig.~\ref{fig:rife}.
+RIFE (\textit{Real-time Intermediate Flow Estimation})~\cite{huang2022rife} es un modelo de interpolación de fotogramas que estima directamente el flujo óptico intermedio entre dos fotogramas consecutivos, sin recurrir a la descomposición bidireccional empleada por métodos anteriores como DAIN~\cite{bao2019dain} y Super~SloMo~\cite{jiang2018superslomo}. Su componente central, IFNet, calcula este flujo a tres escalas sucesivas, de la más gruesa a la más fina. Un esquema de destilación de conocimiento~\cite{hinton2015distilling} guía el entrenamiento de IFNet, permitiéndole aprender representaciones de movimiento precisas de manera eficiente. Junto al flujo, IFNet produce una máscara de fusión. El fotograma intermedio se obtiene deformando los dos fotogramas adyacentes según el flujo y mezclando ambas versiones con el peso que indica la máscara, que es el mecanismo con el que el modelo resuelve las zonas ocluidas, tal como se esquematiza en la Fig.~\ref{fig:rife}.
 
 \begin{figure}[t]
     \centering
     \input{figures/fig3_rife}
-    \caption{Arquitectura de RIFE~\cite{huang2022rife}. IFNet estima el flujo intermedio entre los dos fotogramas de entrada, que se usa para deformarlos hacia el instante $t\!+\!0.5$; la etapa de fusión combina ambas versiones deformadas y corrige las regiones de oclusión. Las líneas discontinuas indican los fotogramas de entrada que alimentan la deformación.}
+    \caption{Arquitectura de RIFE~\cite{huang2022rife}. IFNet estima, a tres escalas sucesivas, el flujo intermedio $F$ y una máscara de fusión $M$. El flujo deforma los dos fotogramas de entrada hacia el instante $t\!+\!0.5$ y la máscara pondera la mezcla de ambas versiones, que es lo que resuelve las regiones ocluidas. Las líneas discontinuas indican los fotogramas de entrada que alimentan la deformación.}
     \label{fig:rife}
 \end{figure}
 

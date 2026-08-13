@@ -1,25 +1,34 @@
 % Fig. 1: flujo de trabajo propuesto.
+% Las posiciones van en coordenadas absolutas para que los tres rotulos de abajo
+% queden dentro del ancho de columna, que es lo que limita el dibujo.
 \begin{tikzpicture}[diagram]
 
-  \singleframe{lr}{thumb_lr.png}{(0.5,0.4)}
-  \node[note, below=1.6mm of lr.south] (lrlab)
-    {Fotogramas LR\\$212\times120$, 15 fps};
+  \singleframe{lr}{thumb_lr.png}{(0.5,0)}
 
-  \node[block, minimum width=21mm, right=5mm of lr, anchor=west] (sr)
-    {\textbf{ESRGAN}\\Superresolución\\espacial ($\times4$)};
+  \node[block, minimum width=21mm, anchor=west] (sr) at (1.5,0)
+    {\textbf{ESRGAN}\\Superresolución\\espacial ($\times4$)\\
+     {\color{black!60}45.5 ms/fot.}};
 
-  \node[block, minimum width=21mm, right=9mm of sr] (rife)
-    {\textbf{RIFE}\\Interpolación\\temporal ($\times2$)};
+  \node[block, minimum width=21mm, anchor=west] (rife) at (4.2,0)
+    {\textbf{RIFE}\\Interpolación\\temporal ($\times2$)\\
+     {\color{black!60}14.0 ms/fot.}};
 
-  \singleframe{out}{thumb_sr.png}{($(rife.east)+(0.9,0)$)}
-  \node[note, below=1.6mm of out.south] (outlab)
-    {Video mejorado\\$848\times480$, 30 fps};
+  \singleframe{out}{thumb_sr.png}{(7.25,0)}
 
   \draw[flow] (lr.east) -- (sr.west);
   \draw[flow] (sr.east) -- (rife.west);
   \draw[flow] (rife.east) -- (out.west);
 
-  \coordinate (mid) at ($(sr.east)!0.5!(rife.west)$);
-  \node[note] at (mid |- lrlab) {$848\times480$\\15 fps};
+  % los rotulos se alinean bajo los bloques, que son lo mas bajo del dibujo,
+  % para que ninguno toque un borde
+  \coordinate (base) at ($(sr.south)-(0,0.14)$);
+  \coordinate (mid)  at ($(sr.east)!0.5!(rife.west)$);
+
+  \node[note, anchor=north] at (lr |- base)
+    {Fotogramas LR\\$212\times120$, 15 fps\\$N$ fotogramas};
+  \node[note, anchor=north] at (mid |- base)
+    {$848\times480$\\15 fps\\$N$ fotogramas};
+  \node[note, anchor=north] at (out |- base)
+    {Video mejorado\\$848\times480$, 30 fps\\$2N-1$ fotogramas};
 
 \end{tikzpicture}
