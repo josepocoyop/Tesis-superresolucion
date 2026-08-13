@@ -101,10 +101,18 @@ def build_figure(frame_t, frame_interp, frame_t1):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
+    # same typography as step6, otherwise this figure comes out in sans serif
+    # and the paper ends up with two different fonts inside its figures
+    matplotlib.rcParams.update({
+        'font.family': 'serif',
+        'font.serif':  ['Times New Roman', 'DejaVu Serif'],
+        'font.size':   8,
+    })
+
     panels = [
-        (frame_t,      'Fotograma $t$\n(ESRGAN)',                  'black',   False),
-        (frame_interp, 'Fotograma $t\\!+\\!0.5$\n(RIFE, sintetizado)', '#b22222', True),
-        (frame_t1,     'Fotograma $t\\!+\\!1$\n(ESRGAN)',           'black',   False),
+        (frame_t,      'Frame $t$\n(ESRGAN)',                     'black',   False),
+        (frame_interp, 'Frame $t\\!+\\!0.5$\n(RIFE, synthesized)', '#b22222', True),
+        (frame_t1,     'Frame $t\\!+\\!1$\n(ESRGAN)',              'black',   False),
     ]
 
     fig, axes = plt.subplots(1, 3, figsize=(FIG_DOUBLE_W, 2.3))

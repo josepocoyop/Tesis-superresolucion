@@ -1,4 +1,4 @@
-% Fig. 3: arquitectura de RIFE.
+% Fig. 3: RIFE architecture.
 \begin{tikzpicture}[diagram]
 
   \singleframe{ia}{thumb_t.png}{(0.62,1.95)}
@@ -7,24 +7,24 @@
   \node[note, below=0.6mm of ib.south] {$I_{t+1}$};
 
   \node[block, minimum width=17mm, minimum height=13mm] (ifnet) at (2.75,1.45)
-    {\textbf{IFNet}\\estimación del\\movimiento\\{\color{black!60}3 escalas}};
+    {\textbf{IFNet}\\motion\\estimation\\{\color{black!60}3 scales}};
 
   \node[auxblock, minimum width=25mm, minimum height=9mm] (est) at (5.85,1.45)
-    {Flujo $F_{t\rightarrow t+0.5}$\\y máscara de fusión $M$};
+    {Flow $F_{t\rightarrow t+0.5}$\\and fusion mask $M$};
 
   \draw[flow] (ia.east) -- (ifnet.west);
   \draw[flow] (ib.east) -- (ifnet.west);
   \draw[flow] (ifnet.east) -- (est.west);
 
   \node[block, minimum width=20mm] (warp) at (2.05,-0.62)
-    {Deformación de\\ambos fotogramas};
+    {Warping of\\both frames};
   \node[block, minimum width=21mm] (fuse) at (4.95,-0.62)
-    {Mezcla ponderada\\por $M$};
+    {Blending\\weighted by $M$};
   \singleframe{out}{thumb_mid.png}{($(fuse.east)+(0.95,0)$)}
   \node[note, below=0.7mm of out.south] {$I_{t+0.5}$};
 
-  % el flujo va a la deformacion y la mascara a la mezcla; ambos salen del
-  % mismo punto para no cruzar lineas
+  % the flow feeds the warping and the mask the blending; both leave from the
+  % same point so that no lines cross
   \coordinate (j) at ($(est.south)-(0,0.55)$);
   \draw[flow] (est.south) -- (j) -| (warp.north);
   \draw[flow] (est.south) -- (j) -| (fuse.north);
@@ -34,7 +34,7 @@
   \draw[flow] (warp) -- (fuse);
   \draw[flow] (fuse.east) -- (out.west);
 
-  % los dos fotogramas de entrada tambien alimentan la deformacion
+  % the two input frames also feed the warping stage
   \draw[aux] (ia.west) -- ++(-0.28,0) |- (warp.west);
   \draw[aux] (ib.west) -- ++(-0.28,0) |- (warp.west);
 

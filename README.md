@@ -312,6 +312,8 @@ Los archivos quedaron en:
 
 El artículo fue aceptado. La versión enviada quedó archivada completa en `ColCom Paper/v1_submitted/` (fuente, bibliografía, figuras y PDF), para poder comparar contra ella. La versión final se prepara sobre `ColCom Paper/main.tex`, con fecha límite del 22 de agosto de 2026 y el mismo límite de 6 páginas incluyendo referencias.
 
+**El artículo pasó a estar completo en inglés.** La convocatoria acepta los dos idiomas siempre que el resumen esté en inglés. La traducción cubrió el texto, los tres diagramas TikZ y los rótulos incrustados en las Figs. 4 y 5, que se generan desde `step6_generate_figures.py` y `step8_temporal_figure.py`. Dos detalles a tener presentes si alguien recompila: al cambiar babel a inglés hay que reponer `\figurename` a "Fig." y `\tablename` a "TABLE", porque babel los deja como "Figure" y "Table" y IEEE usa los primeros; y `step8` necesita fijar la tipografía serif de matplotlib, o la Fig. 5 sale en palo seco mientras la Fig. 4 sale en serif. La versión en español queda en el historial de git.
+
 Qué pidieron los dos revisores y cómo se atendió:
 
 | Observación | Qué se hizo |

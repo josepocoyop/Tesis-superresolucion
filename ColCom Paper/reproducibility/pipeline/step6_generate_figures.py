@@ -125,14 +125,14 @@ def build_figure(hr, lr, bic, sr, roi, m):
                           left=0.004, right=0.996, top=0.86, bottom=0.005)
 
     top = [
-        (lr_full, f'Entrada LR\n({w // SCALE_FACTOR}$\\times${h // SCALE_FACTOR}, NN)', 'black', False),
-        (bic, ('Bicúbico $\\times$4\n'
+        (lr_full, f'LR input\n({w // SCALE_FACTOR}$\\times${h // SCALE_FACTOR}, NN)', 'black', False),
+        (bic, ('Bicubic $\\times$4\n'
                f'PSNR: {m["psnr_bic"]:.2f} dB | SSIM: {m["ssim_bic"]:.3f}\n'
                f'LPIPS: {m["lpips_bic"]:.3f}'), GREY, False),
         (sr, ('ESRGAN $\\times$4 (prop.)\n'
               f'PSNR: {m["psnr_sr"]:.2f} dB | SSIM: {m["ssim_sr"]:.3f}\n'
               f'LPIPS: {m["lpips_sr"]:.3f}'), RED, True),
-        (hr, f'Referencia HR\n({w}$\\times${h})', 'black', False),
+        (hr, f'HR reference\n({w}$\\times${h})', 'black', False),
     ]
     for col, (img, title, color, highlight) in enumerate(top):
         ax = fig.add_subplot(gs[0, col])
@@ -145,10 +145,10 @@ def build_figure(hr, lr, bic, sr, roi, m):
                                         facecolor='none'))
 
     bottom = [
-        (lr_patch, 'LR (ampliado)', GREY, False),
-        (patch(bic), 'Bicúbico', GREY, False),
+        (lr_patch, 'LR (magnified)', GREY, False),
+        (patch(bic), 'Bicubic', GREY, False),
         (patch(sr), 'ESRGAN (prop.)', RED, True),
-        (patch(hr), 'Referencia HR', 'black', False),
+        (patch(hr), 'HR reference', 'black', False),
     ]
     for col, (img, title, color, highlight) in enumerate(bottom):
         ax = fig.add_subplot(gs[1, col])

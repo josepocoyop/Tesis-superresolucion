@@ -1,18 +1,18 @@
-% Fig. 2: arquitectura de ESRGAN.
+% Fig. 2: ESRGAN architecture.
 \begin{tikzpicture}[diagram]
 
-  % generador, la unica parte que se ejecuta en inferencia
+  % generator, the only part that runs at inference time
   \singleframe{lr}{thumb_lr.png}{(0.5,1.95)}
   \node[note, below=0.8mm of lr.south] {LR};
 
   \node[block, minimum width=8mm, right=4.5mm of lr, anchor=west] (c1) {Conv};
   \node[block, minimum width=13mm, right=3mm of c1] (rrdb)
-    {RRDB\\$\times 23$\\{\color{black!60}64 canales}};
+    {RRDB\\$\times 23$\\{\color{black!60}64 channels}};
   \node[block, minimum width=15mm, right=4mm of rrdb] (up)
-    {Muestreo\\ascendente\\{\color{black!60}dos etapas $\times2$}};
+    {Upsampling\\{\color{black!60}two $\times2$ steps}};
   \node[block, minimum width=8mm, right=3mm of up] (c2) {Conv};
 
-  % conexion residual global alrededor del tronco de bloques RRDB
+  % global residual connection around the trunk of RRDB blocks
   \node[draw=black!65, circle, inner sep=0.5pt, fill=white, font=\tiny]
     (sum) at ($(rrdb.east)!0.5!(up.west)$) {$+$};
   \draw[flow] (c1.north) .. controls +(0,0.45) and +(0,0.45) .. (sum.north);
@@ -31,25 +31,25 @@
     \node[draw=black!45, densely dashed, rounded corners=1.5pt,
           inner xsep=2mm, inner ysep=3.2mm, fit=(lr)(c1)(c2)(sr)] (gen) {};
   \end{scope}
-  \node[note, anchor=north west] at ($(gen.north west)+(1mm,-0.4mm)$) {Generador};
+  \node[note, anchor=north west] at ($(gen.north west)+(1mm,-0.4mm)$) {Generator};
 
-  % perdidas, solo intervienen durante el entrenamiento
+  % losses, used during training only
   \singleframe{hr}{thumb_hr.png}{(0.5,0.32)}
-  \node[note, below=1.4mm of hr.south] {Referencia\\HR};
+  \node[note, below=1.4mm of hr.south] {HR\\reference};
 
   \node[lossblock, minimum width=19mm] (l1) at (3.05,0.32)
-    {$\mathcal{L}_1$\\error por píxel};
+    {$\mathcal{L}_1$\\pixel error};
   \node[lossblock, minimum width=19mm, right=2mm of l1] (lp)
     {$\mathcal{L}_{\mathrm{perc}}$\\perceptual (VGG)};
   \node[lossblock, minimum width=19mm, right=2mm of lp] (la)
-    {$\mathcal{L}_{\mathrm{adv}}$\\discriminador};
+    {$\mathcal{L}_{\mathrm{adv}}$\\discriminator};
 
   \begin{scope}[on background layer]
     \node[draw=black!45, densely dashed, rounded corners=1.5pt,
           inner xsep=1.1mm, inner ysep=1.4mm, fit=(l1)(la)] (losses) {};
   \end{scope}
   \node[note, anchor=north east] at ($(losses.south east)+(0,-0.6mm)$)
-    {Solo durante el entrenamiento};
+    {Training only};
 
   \draw[flow] (hr.east) -- (losses.west);
   \draw[flow] (sr.south) -- (la.north);
