@@ -129,7 +129,9 @@ def build_figure(hr, lr, bic, sr, roi, m):
         (bic, ('Bicubic $\\times$4\n'
                f'PSNR: {m["psnr_bic"]:.2f} dB | SSIM: {m["ssim_bic"]:.3f}\n'
                f'LPIPS: {m["lpips_bic"]:.3f}'), GREY, False),
-        (sr, ('ESRGAN $\\times$4 (prop.)\n'
+        # ESRGAN is not our model: the red frame marks the stage under
+        # evaluation, it does not claim authorship of the network
+        (sr, ('ESRGAN $\\times$4\n'
               f'PSNR: {m["psnr_sr"]:.2f} dB | SSIM: {m["ssim_sr"]:.3f}\n'
               f'LPIPS: {m["lpips_sr"]:.3f}'), RED, True),
         (hr, f'HR reference\n({w}$\\times${h})', 'black', False),
@@ -147,7 +149,7 @@ def build_figure(hr, lr, bic, sr, roi, m):
     bottom = [
         (lr_patch, 'LR (magnified)', GREY, False),
         (patch(bic), 'Bicubic', GREY, False),
-        (patch(sr), 'ESRGAN (prop.)', RED, True),
+        (patch(sr), 'ESRGAN', RED, True),
         (patch(hr), 'HR reference', 'black', False),
     ]
     for col, (img, title, color, highlight) in enumerate(bottom):

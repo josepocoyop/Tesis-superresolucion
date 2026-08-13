@@ -169,7 +169,7 @@ That magnified region deserves a careful reading. It contains a window grille, a
     }{%
         \rule{\textwidth}{0.4pt}\\[3cm]\rule{\textwidth}{0.4pt}%
     }
-    \caption{Comparison of methods on a representative frame. Top row: full frames, with the magnified region marked in red (LR input scaled with nearest-neighbor, $\times4$ bicubic reconstruction, $\times4$ ESRGAN output, and HR reference). Bottom row: that same region magnified. The PSNR, SSIM, and LPIPS values are averages over the 60~evaluation frames, not those of this particular frame.}
+    \caption{Comparison of methods on a representative frame. Top row: full frames, with the magnified region marked in red (LR input scaled with nearest-neighbor, $\times4$ bicubic reconstruction, $\times4$ ESRGAN output, and HR reference). Bottom row: that same region magnified. The red frame marks the stage used in the pipeline evaluated here, which is ESRGAN as published; the network itself is not a contribution of this work. The PSNR, SSIM, and LPIPS values are averages over the 60~evaluation frames, not those of this particular frame.}
     \label{fig:comparison}
 \end{figure*}
 
@@ -227,7 +227,7 @@ Table~\ref{tab:metrics} summarizes the average results over the 60~evaluation fr
         \midrule
         Bicubic $\times$4            & 20.42 & 0.5132 & 0.7140 & 15 & 0.5 \\
         ESRGAN $\times$4             & 18.84 & 0.5194 & 0.3112 & 15 & 45.5 \\
-        ESRGAN + RIFE (proposed)     & 18.84 & 0.5194 & 0.3112 & 30 & 52.5 \\
+        ESRGAN + RIFE (proposed pipeline) & 18.84 & 0.5194 & 0.3112 & 30 & 52.5 \\
         \bottomrule
     \end{tabular}}
 \end{table}
